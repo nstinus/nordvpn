@@ -1,10 +1,12 @@
-#!/usr/bin/sh
+#!/bin/sh
 
-get_service() {
+get_service()
+{
     systemctl --type=service | grep openvpn-client@nordvpn | awk '{print $1}'
 }
 
-run_ping() {
+run_ping()
+{
     remote=$(grep -E '^remote [0-9.]+ [0-9]+$' $1 | cut -d ' ' -f 2)
     test ! -z "$remote" || exit 1
     bin=$(which ping)
@@ -71,7 +73,8 @@ update_files()
     rm -rf $tmpdir
 }
 
-print_usage() {
+print_usage()
+{
     echo "usage: $(basename $0) [options] command [args]"
     echo "Available options:"
     echo "    -v  be verbose, show commands and variables"
@@ -100,7 +103,7 @@ do
             ;;
         *)
             print_usage
-            exit $(test $opt == "h")
+            exit $(test $opt = "h")
             ;;
     esac
 done
@@ -137,12 +140,12 @@ case $command in
     start)
         service=$(get_service)
         test -z "$service" || $0 stop
-        if [[ -x /etc/openvpn/vpnfailsafe.sh ]]; then
+        if [ -x /etc/openvpn/vpnfailsafe.sh ]; then
             ln -fs /etc/openvpn/vpnfailsafe.sh /etc/openvpn/client/nordvpn/updown
         else
             ln -fs /etc/openvpn/update-resolv-conf /etc/openvpn/client/nordvpn/updown
         fi
-        if [[ ! -f /etc/openvpn/client/nordvpn_${1}.conf ]]; then
+        if [ ! -f /etc/openvpn/client/nordvpn_${1}.conf ]; then
             echo "${1} is not a valid nordvpn server. Exiting."
             exit 1
         fi
