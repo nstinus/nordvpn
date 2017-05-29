@@ -21,8 +21,8 @@ Quickstart
 - Once installed, run `sudo nordvpn update` to download and install the
 configuration files.
 - Edit `/etc/openvpn/client/nordvpn/credentials.conf`.
-- Run `sudo nordvpn list` to choose a server (alternatively the rank
+- Run `sudo nordvpn list` to choose a server (alternatively the `rank`
 command pings the servers).
 - Finally `sudo nordvpn start <servername>`.
 - The status command shows you the status of the systemd service.
-- See `sudo nordvpn -h` for mre information.
+- See `sudo nordvpn -h` for more information.
