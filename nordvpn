@@ -1,12 +1,10 @@
 #!/bin/sh
 
-get_service()
-{
+get_service() {
     systemctl --type=service | grep openvpn-client@nordvpn | awk '{print $1}'
 }
 
-run_ping()
-{
+run_ping() {
     remote=$(grep -E '^remote [0-9.]+ [0-9]+$' $1 | cut -d ' ' -f 2)
     test ! -z "$remote" || exit 1
     bin=$(which ping)
@@ -14,22 +12,19 @@ run_ping()
     $bin -c 4 -A $remote | tail -n 1 | cut -d / -f 5
 }
 
-progress_bar()
-{
+progress_bar() {
     pct=$(echo "${1} / ${2}" | bc -l)
     hashes=$(printf "%0.s#" $(seq $(echo "$pct * 73 + 1" | bc )))
     spaces=$(printf "%0.s " $(seq $(echo "(1 - $pct) * 73" | bc)))
     printf "\r%s%s %5.1f%%" "$hashes" "$spaces" "$(echo "$pct * 100" | bc)"
 }
 
-end_progress_bar()
-{
+end_progress_bar() {
     hashes=$(printf "%0.s#" $(seq 73))
     printf "\r%s 100.0%%\n" "$hashes"
 }
 
-update_files()
-{
+update_files() {
     local targetdir=/etc/openvpn/client/nordvpn
     mkdir -p $targetdir
     local tmpdir=$(mktemp -d)
@@ -37,7 +32,6 @@ update_files()
 
     echo "Downloading nordvpn config files..."
     curl --progress-bar -o nordvpn.zip https://nordvpn.com/api/files/zip || exit 1
-    # cp ~nicolas/abs/openvpn-nordvpn/zip nordvpn.zip || exit 1
     mkdir conf
     unzip -q nordvpn.zip -d conf || exit 2
 
@@ -56,42 +50,44 @@ update_files()
         echo "up /etc/openvpn/client/nordvpn/updown" >> $f
         echo "down /etc/openvpn/client/nordvpn/updown" >> $f
         install -D -m 444 $f $targetdir/conf/$(basename $f)
-        ln -s $targetdir/conf/$(basename $f) /etc/openvpn/client/nordvpn_$(echo $(basename $f) | cut -d '.' -f 1).conf
+        ln -s $targetdir/conf/$(basename $f) $targetdir/../nordvpn_$(echo $(basename $f) | cut -d '.' -f 1).conf
         idx=$(( $idx + 1 ))
     done
     end_progress_bar
 
+    local cred_file=$targetdir/credentials.conf
     if [ -f credentials.conf ]; then
-        cp credentials.conf /etc/openvpn/client/nordvpn/credentials.conf
+        cp credentials.conf $cred_file
     else
-        echo "login" > /etc/openvpn/client/nordvpn/credentials.conf
-        echo "password" >> /etc/openvpn/client/nordvpn/credentials.conf
-        chmod 400 /etc/openvpn/client/nordvpn/credentials.conf
-        echo "Please update /etc/openvpn/client/nordvpn/credentials.conf"
+        echo "login" > $cred_file
+        echo "password" >> $cred_file
+        chmod 400 $cred_file
+        echo "Please update $cred_file"
     fi
 
     rm -rf $tmpdir
 }
 
-print_usage()
-{
-    echo "usage: $(basename $0) [options] command [args]"
-    echo "Available options:"
-    echo "    -v  be verbose, show commands and variables"
-    echo "    -h  print this help and exit"
-    echo "Available commands:"
-    echo "    list [server_name_pattern]"
-    echo "        List available servers."
-    echo "    ping server_name"
-    echo "        Show round trip latency"
-    echo "    rank [server_name_pattern]"
-    echo "        Ping all servers matching pattern and rank them"
-    echo "    status"
-    echo "        Show current systemd service status, if any."
-    echo "    start|stop|restart server_name"
-    echo "        Start, stop or restart systemd service for specified server."
-    echo "    update"
-    echo "        Download and install nordvpn config files."
+print_usage() {
+    cat <<EOF
+usage: $(basename $0) [options] command [args]
+Available options:
+    -v  be verbose, show commands and variables
+    -h  print this help and exit
+Available commands:
+    list [server_name_pattern]
+        List available servers.
+    ping server_name
+        Show round trip latency
+    rank [server_name_pattern]
+        Ping all servers matching pattern and rank them
+    status
+        Show current systemd service status, if any.
+    start|stop|restart server_name
+        Start, stop or restart systemd service for specified server.
+    update
+        Download and install nordvpn config files.
+EOF
 }
 
 while getopts "vh" opt
@@ -139,11 +135,12 @@ case $command in
         ;;
     start)
         service=$(get_service)
+        updown=/etc/openvpn/client/nordvpn/updown
         test -z "$service" || $0 stop
         if [ -x /etc/openvpn/vpnfailsafe.sh ]; then
-            ln -fs /etc/openvpn/vpnfailsafe.sh /etc/openvpn/client/nordvpn/updown
+            ln -fs /etc/openvpn/vpnfailsafe.sh $updown
         else
-            ln -fs /etc/openvpn/update-resolv-conf /etc/openvpn/client/nordvpn/updown
+            ln -fs /etc/openvpn/update-resolv-conf $updown
         fi
         if [ ! -f /etc/openvpn/client/nordvpn_${1}.conf ]; then
             echo "${1} is not a valid nordvpn server. Exiting."
