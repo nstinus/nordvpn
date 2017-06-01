@@ -25,13 +25,23 @@ end_progress_bar() {
 }
 
 update_files() {
+    local remote_url=https://nordvpn.com/api/files/zipv2
+
     local targetdir=/etc/openvpn/client/nordvpn
     mkdir -p $targetdir
+
+    local etag_file=$targetdir/etag
+    local etag=$(curl -sI $remote_url | grep etag | awk '{print $2}')
+    if [ -r $etag_file ] && [ "$etag" = "$(cat $etag_file)" ]; then
+        echo "Current config is up to date."
+        exit 0
+    fi
+
     local tmpdir=$(mktemp -d)
     cd $tmpdir
 
     echo "Downloading nordvpn config files..."
-    curl --progress-bar -o nordvpn.zip https://nordvpn.com/api/files/zip || exit 1
+    curl --progress-bar -o nordvpn.zip  $remote_url || exit 1
     mkdir conf
     unzip -q nordvpn.zip -d conf || exit 2
 
@@ -64,6 +74,8 @@ update_files() {
         chmod 400 $cred_file
         echo "Please update $cred_file"
     fi
+
+    echo "$etag" > $etag_file
 
     rm -rf $tmpdir
 }
