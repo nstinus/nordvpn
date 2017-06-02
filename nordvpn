@@ -31,7 +31,10 @@ update_files() {
     mkdir -p $targetdir
 
     local etag_file=$targetdir/etag
-    local etag=$(curl -sI $remote_url | grep etag | awk '{print $2}')
+    local etag="$(curl -sI $remote_url \
+                     | grep etag \
+                     | awk '{print $2}' \
+                     | tr -d '[:space:]')"
     if [ -r $etag_file ] && [ "$etag" = "$(cat $etag_file)" ]; then
         echo "Current config is up to date."
         exit 0
@@ -42,6 +45,10 @@ update_files() {
 
     echo "Downloading nordvpn config files..."
     curl --progress-bar -o nordvpn.zip  $remote_url || exit 1
+    if [ "$(md5sum nordvpn.zip | awk '{print $1}')" != "$etag" ]; then
+        echo "md5sum(nordvpn.zip) != $etag"
+        exit 1
+    fi
     mkdir conf
     unzip -q nordvpn.zip -d conf || exit 2
 
