@@ -91,8 +91,10 @@ print_usage() {
     cat <<EOF
 usage: $(basename $0) [options] command [args]
 Available options:
-    -v  be verbose, show commands and variables
-    -h  print this help and exit
+    -v, --verbose
+        Be verbose, show commands and variables.
+    -h, --help
+        Print this help and exit.
 Available commands:
     list [server_name_pattern]
         List available servers.
@@ -109,22 +111,33 @@ Available commands:
 EOF
 }
 
-while getopts "vh" opt
+
+while [ $# -ne 0 ]
 do
-    case $opt in
-        v)
+    case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -v|--verbose)
             set -x
             shift
             ;;
+        list|ping|rank|status|start|stop|restart|update)
+            command="$1"
+            shift
+            break
+            ;;
+        --)
+            shift
+            break
+            ;;
         *)
             print_usage
-            exit $(test $opt = "h")
+            exit 1
             ;;
     esac
 done
-
-command=$1
-shift
 
 case $command in
     list)
