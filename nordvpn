@@ -114,6 +114,10 @@ Available options:
 Available commands:
     list [server_name_pattern]
         List available servers.
+    infos [options]
+        List available servers with additional information such as current load and features.
+        -f, --force
+            Force download.
     ping server_name
         Show round trip latency.
     rank [server_name_pattern]
@@ -145,7 +149,7 @@ do
             set -x
             shift
             ;;
-        list|ping|rank|status|start|stop|restart|update)
+        list|infos|ping|rank|status|start|stop|restart|update)
             command="$1"
             shift
             break
@@ -170,10 +174,31 @@ fi
 case $command in
     list)
         find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*.conf" \
-             | xargs -L1 basename \
-             | cut -d _ -f 2 \
-             | cut -d . -f 1 \
-             | sort -g
+            | xargs -L1 basename \
+            | cut -d _ -f 2 \
+            | cut -d . -f 1 \
+            | sort -g
+        ;;
+    infos)
+        if ! which python 1>/dev/null 2>&1;
+        then
+            echo "'nordvpn infos' requires python and pandas."
+            exit 1
+        fi
+        declare -i force_update=0
+        case "$1" in
+            -f|--force)
+                force_update=1
+                shift
+                ;;
+        esac
+        declare -r servers_filename=/tmp/nordvpn_servers.json
+        if [ $force_update -eq 1 ] || [ $(find $servers_filename -mmin +15 -writable) ]
+        then
+            echo "Updating servers list..."
+            curl --silent -o $servers_filename https://api.nordvpn.com/server
+        fi
+        python /etc/openvpn/client/nordvpn/servers.py $servers_filename
         ;;
     ping)
         file="/etc/openvpn/client/nordvpn_${1}.conf"

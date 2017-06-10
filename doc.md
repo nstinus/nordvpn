@@ -16,6 +16,7 @@ SYNOPSIS
 | **nordvpn** [-v, --verbose] **update** [-f, --force]
 | **nordvpn** [-v, --verbose] **ping** _server_name_
 | **nordvpn** [-v, --verbose] **list** [_server_pattern_]
+| **nordvpn** [-v, --verbose] **infos** [-f, --force]
 | **nordvpn** [-v, --verbose] **rank** [_server_pattern_]
 
 DESCRIPTION
@@ -56,6 +57,10 @@ COMMANDS
 
 : Show all available servers matching _server_pattern_.
 
+**infos** [**-f**, **--force**]
+
+: Show all available servers currently configured with additional information like current load, location and features. It will store data in /tmp/nordvpn_servers.json. The file is automatically updated after 15 minutes; option [**-f**, **--force**] forces the download. Requires **python** and the **pandas** package.
+
 **rank** [_server_pattern_]
 
 : ping and sort all servers matching _server_pattern_. See _ping_ above.
@@ -78,6 +83,10 @@ FILES
 */etc/openvpn/client/nordvpn/credentials.conf*
 
 : Credentials of nordvpn.com subscription. Login on the first line and password on the second.
+
+*/tmp/nordvpn_servers.json*
+
+: Servers list downloaded from https://api.nordvpn.com/server and used by **nordvpn infos**.
 
 BUGS
 ====
