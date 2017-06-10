@@ -25,6 +25,21 @@ end_progress_bar() {
 }
 
 update_files() {
+    local -i force_update=0
+    while [ $# -ne 0 ]
+    do
+        case "$1" in
+            -f|--force)
+                force_update=1
+                shift
+                ;;
+            *)
+                print_usage
+                shift
+                ;;
+        esac
+    done
+
     local remote_url=https://nordvpn.com/api/files/zipv2
 
     local targetdir=/etc/openvpn/client/nordvpn
@@ -35,7 +50,7 @@ update_files() {
                      | grep etag \
                      | awk '{print $2}' \
                      | tr -d '[:space:]')"
-    if [ -r $etag_file ] && [ "$etag" = "$(cat $etag_file)" ]; then
+    if [ $force_update -eq 0 ] && [ -r $etag_file ] && [ "$etag" = "$(cat $etag_file)" ]; then
         echo "Current config is up to date."
         exit 0
     fi
@@ -106,8 +121,10 @@ Available commands:
         Show current systemd service status, if any.
     start|stop|restart server_name
         Start, stop or restart systemd service for specified server.
-    update
+    update [options]
         Download and install nordvpn config files.
+        -f, --force
+            Force download even if the configuration files have not changed.
 EOF
 }
 
@@ -185,7 +202,7 @@ case $command in
         test -z "$service" || systemctl $command $service
         ;;
     update)
-        update_files
+        update_files "$@"
         ;;
     *)
         print_usage
