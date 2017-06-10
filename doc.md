@@ -9,7 +9,7 @@ SYNOPSIS
 ========
 
 | **nordvpn** [-v, --verbose] [-h, --help]
-| **nordvpn** [-v, --verbose] **start** _server_name_
+| **nordvpn** [-v, --verbose] **start** [-t, --tcp] _server_name_
 | **nordvpn** [-v, --verbose] **stop**
 | **nordvpn** [-v, --verbose] **restart**
 | **nordvpn** [-v, --verbose] **status**
@@ -28,9 +28,9 @@ Note that except for **status**, all the commands require super-user privileges.
 COMMANDS
 --------
 
-**start** _server_name_
+**start** [**-t**, **--tcp**] _server_name_
 
-: Start a connection to _server_name_.
+: Start a connection to _server_name_. By default, it will connect in UDP. Use option [**-t**, **--tcp**] for TCP.
 
 **stop**
 

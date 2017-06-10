@@ -72,9 +72,9 @@ update_files() {
     find /etc/openvpn/client -name 'nordvpn_*.conf' | xargs -r rm
     rm -rf $targetdir/conf && mkdir -p $targetdir/conf
 
-    nb_files=$(find conf -name '*udp1194.ovpn' | wc -l)
+    nb_files=$(find conf -name '*.ovpn' | wc -l)
     idx=0
-    for f in $(find conf -name '*udp1194.ovpn'); do
+    for f in $(find conf -name '*.ovpn'); do
         progress_bar $idx $nb_files
         sed 's/^auth-user-pass.*$/auth-user-pass \/etc\/openvpn\/client\/nordvpn\/credentials.conf/g' -i $f
         echo "" >> $f
@@ -82,7 +82,8 @@ update_files() {
         echo "up /etc/openvpn/client/nordvpn/updown" >> $f
         echo "down /etc/openvpn/client/nordvpn/updown" >> $f
         install -D -m 444 $f $targetdir/conf/$(basename $f)
-        ln -s $targetdir/conf/$(basename $f) $targetdir/../nordvpn_$(echo $(basename $f) | cut -d '.' -f 1).conf
+        local -a tok=($(basename $f | tr '.' ' '))
+        ln -s $targetdir/conf/$(basename $f) $targetdir/../nordvpn_${tok[0]}_${tok[3]:0:3}.conf
         idx=$(( $idx + 1 ))
     done
     end_progress_bar
@@ -119,8 +120,12 @@ Available commands:
         Ping all servers matching pattern and rank them.
     status
         Show current systemd service status, if any.
-    start|stop|restart server_name
-        Start, stop or restart systemd service for specified server.
+    start [options] server_name
+        Start systemd service for specified server.
+        -t, --tcp
+            Use TCP connection instead of UDP.
+    stop|restart
+        Stop or restart systemd service, if any.
     update [options]
         Download and install nordvpn config files.
         -f, --force
@@ -189,6 +194,13 @@ case $command in
         test -z "$service" || systemctl status $service
         ;;
     start)
+        conn_type='udp'
+        case "$1" in
+            -t|--tcp)
+                conn_type='tcp'
+                shift
+                ;;
+        esac
         service=$(get_service)
         updown=/etc/openvpn/client/nordvpn/updown
         test -z "$service" || $0 stop
@@ -197,11 +209,11 @@ case $command in
         else
             ln -fs /etc/openvpn/update-resolv-conf $updown
         fi
-        if [ ! -f /etc/openvpn/client/nordvpn_${1}.conf ]; then
+        if [ ! -f /etc/openvpn/client/nordvpn_${1}_${conn_type}.conf ]; then
             echo "${1} is not a valid nordvpn server. Exiting."
             exit 1
         fi
-        systemctl $command openvpn-client@nordvpn_${1}
+        systemctl $command openvpn-client@nordvpn_${1}_${conn_type}
         ;;
     stop|restart)
         service=$(get_service)
