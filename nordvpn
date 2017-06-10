@@ -97,9 +97,9 @@ Available commands:
     list [server_name_pattern]
         List available servers.
     ping server_name
-        Show round trip latency
+        Show round trip latency.
     rank [server_name_pattern]
-        Ping all servers matching pattern and rank them
+        Ping all servers matching pattern and rank them.
     status
         Show current systemd service status, if any.
     start|stop|restart server_name
@@ -135,7 +135,7 @@ case $command in
              | sort -g
         ;;
     ping)
-        file=/etc/openvpn/client/nordvpn_${1}.conf
+        file="/etc/openvpn/client/nordvpn_${1}.conf"
         test -f "$file" || exit 1
         run_ping $file
         ;;
