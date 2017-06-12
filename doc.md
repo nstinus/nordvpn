@@ -8,15 +8,15 @@ nordvpn - utility to use nordvpn.com with openvpn and systemd.
 SYNOPSIS
 ========
 
-| **nordvpn** [**-v**, **--verbose**] [**-h**, **--help**]
-| **nordvpn** [**-v**, **--verbose**] **start** _server_name_
-| **nordvpn** [**-v**, **--verbose**] **stop**
-| **nordvpn** [**-v**, **--verbose**] **restart**
-| **nordvpn** [**-v**, **--verbose**] **status**
-| **nordvpn** [**-v**, **--verbose**] **update** [**-f**, **--force**]
-| **nordvpn** [**-v**, **--verbose**] **ping** _server_name_
-| **nordvpn** [**-v**, **--verbose**] **list** [_server_pattern_]
-| **nordvpn** [**-v**, **--verbose**] **rank** [_server_pattern_]
+| **nordvpn** [-v, --verbose] [-h, --help]
+| **nordvpn** [-v, --verbose] **start** _server_name_
+| **nordvpn** [-v, --verbose] **stop**
+| **nordvpn** [-v, --verbose] **restart**
+| **nordvpn** [-v, --verbose] **status**
+| **nordvpn** [-v, --verbose] **update** [-f, --force]
+| **nordvpn** [-v, --verbose] **ping** _server_name_
+| **nordvpn** [-v, --verbose] **list** [_server_pattern_]
+| **nordvpn** [-v, --verbose] **rank** [_server_pattern_]
 
 DESCRIPTION
 ===========
@@ -82,7 +82,7 @@ FILES
 BUGS
 ====
 
-Please report any bug or feature request to GitHub Issues: <https://github.com/nstinus/nordvpn/issues>
+Please report any bug or feature request to GitHub Issues: <https://github.com/nstinus/nordvpn/issues>.
 
 AUTHOR
 ======
