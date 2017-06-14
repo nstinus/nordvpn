@@ -156,6 +156,12 @@ do
     esac
 done
 
+if [ $(find /etc/openvpn/client -type f -name "*.nordvpn.com.*.ovpn" | wc -l) -eq 0 ];
+then
+    echo "No configuration files found. Updating now..."
+    update_files -f
+fi
+
 case $command in
     list)
         find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*.conf" \
