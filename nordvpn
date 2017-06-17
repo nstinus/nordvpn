@@ -203,7 +203,7 @@ case $command in
         python /etc/openvpn/client/nordvpn/servers.py $servers_filename
         ;;
     ping)
-        file="/etc/openvpn/client/nordvpn_${1}.conf"
+        file="/etc/openvpn/client/nordvpn_${1}_udp.conf"
         test -f "$file" || exit 1
         run_ping $file
         ;;
