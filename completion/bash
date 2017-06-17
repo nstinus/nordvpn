@@ -1,0 +1,48 @@
+_nordvpn() {
+    local -r cur="${COMP_WORDS[COMP_CWORD]}"
+    local -r prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    if [[ $prev =~ -h|--help ]]
+    then
+        COMPREPLY=()
+        return 0
+    fi
+
+    if [[ $cur == -* ]] ; then
+        if [ $COMP_CWORD -eq 1 ]
+        then
+            COMPREPLY=( $(compgen -W '-h --help -v --verbose' -- $cur) )
+            return 0
+        else
+            case $prev in
+                update|infos)
+                    COMPREPLY=( $(compgen -W '-f --force' -- $cur) );;
+                start)
+                    COMPREPLY=( $(compgen -W '-t --tcp' -- $cur) );;
+            esac
+            return 0
+        fi
+    else
+        if [[ ${COMP_WORDS[@]} =~ start|ping ]]
+        then
+            local -r conn_type=$([[ $prev =~ -t|--tcp ]] && echo 'tcp' || echo 'udp')
+            local -r pattern=$([[ $cur =~ start|ping ]] && echo '' || echo $cur)
+            local -r servers=$(sudo find /etc/openvpn/client/ -maxdepth 1 -name "nordvpn_*${pattern}*_${conn_type}.conf" \
+                                   | xargs -n1 basename \
+                                   | cut -d _ -f 2 \
+                                   | sort \
+                                   | tr '\n' ' ')
+            COMPREPLY=( $(compgen -W "$servers" -- $cur) )
+            return 0
+        elif [[ ${COMP_WORDS[@]} =~ stop|restart|status|list|rank|infos|update ]]
+        then
+            COMPREPLY=()
+            return 0
+        fi
+        COMPREPLY=( $(compgen -W "start stop restart status list ping rank infos update" -- $cur) )
+        return 0
+    fi
+    COMPREPLY=()
+}
+
+complete -F _nordvpn nordvpn
