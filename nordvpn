@@ -209,7 +209,7 @@ case $command in
         ;;
     rank)
         tmp=$(mktemp)
-        for f in $(find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*.conf")
+        for f in $(find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*_udp.conf")
         do
             echo $(basename $f .conf | cut -d _ -f 2) $(run_ping $f) >> $tmp
         done
