@@ -12,16 +12,18 @@ run_ping() {
     $bin -c 4 -A $remote | tail -n 1 | cut -d / -f 5
 }
 
-progress_bar() {
-    pct=$(echo "${1} / ${2}" | bc -l)
-    hashes=$(printf "%0.s#" $(seq $(echo "$pct * 73 + 1" | bc )))
-    spaces=$(printf "%0.s " $(seq $(echo "(1 - $pct) * 73" | bc)))
-    printf "\r%s%s %5.1f%%" "$hashes" "$spaces" "$(echo "$pct * 100" | bc)"
-}
+patch_config_file() {
+    local -r f=$1
+    local -r targetdir=$2
 
-end_progress_bar() {
-    hashes=$(printf "%0.s#" $(seq 73))
-    printf "\r%s 100.0%%\n" "$hashes"
+    sed 's/^auth-user-pass.*$/auth-user-pass \/etc\/openvpn\/client\/nordvpn\/credentials.conf/g' -i $f
+    echo "" >> $f
+    echo "script-security 2" >> $f
+    echo "up /etc/openvpn/client/nordvpn/updown" >> $f
+    echo "down /etc/openvpn/client/nordvpn/updown" >> $f
+    install -D -m 444 $f $targetdir/conf/$(basename $f)
+    local -a tok=($(basename $f | tr '.' ' '))
+    ln -s $targetdir/conf/$(basename $f) $targetdir/../nordvpn_${tok[0]}_${tok[3]:0:3}.conf
 }
 
 update_files() {
@@ -59,7 +61,7 @@ update_files() {
     cd $tmpdir
 
     echo "Downloading nordvpn config files..."
-    curl --progress-bar -o nordvpn.zip  $remote_url || exit 1
+    curl -sS -o nordvpn.zip  $remote_url || exit 1
     if [ "$(md5sum nordvpn.zip | awk '{print $1}')" != "$etag" ]; then
         echo "md5sum(nordvpn.zip) != $etag"
         exit 1
@@ -72,21 +74,8 @@ update_files() {
     find /etc/openvpn/client -name 'nordvpn_*.conf' | xargs -r rm
     rm -rf $targetdir/conf && mkdir -p $targetdir/conf
 
-    nb_files=$(find conf -name '*.ovpn' | wc -l)
-    idx=0
-    for f in $(find conf -name '*.ovpn'); do
-        progress_bar $idx $nb_files
-        sed 's/^auth-user-pass.*$/auth-user-pass \/etc\/openvpn\/client\/nordvpn\/credentials.conf/g' -i $f
-        echo "" >> $f
-        echo "script-security 2" >> $f
-        echo "up /etc/openvpn/client/nordvpn/updown" >> $f
-        echo "down /etc/openvpn/client/nordvpn/updown" >> $f
-        install -D -m 444 $f $targetdir/conf/$(basename $f)
-        local -a tok=($(basename $f | tr '.' ' '))
-        ln -s $targetdir/conf/$(basename $f) $targetdir/../nordvpn_${tok[0]}_${tok[3]:0:3}.conf
-        idx=$(( $idx + 1 ))
-    done
-    end_progress_bar
+    export -f patch_config_file
+    find conf -name '*.ovpn' | xargs -P $(($(nproc --all)-1)) -n1 -I{} sh -c "patch_config_file {} $targetdir"
 
     local cred_file=$targetdir/credentials.conf
     if [ -f credentials.conf ]; then
