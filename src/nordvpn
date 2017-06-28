@@ -160,9 +160,11 @@ then
     exit 1
 fi
 
-if [ $(find /etc/openvpn/client -type f -name "*.nordvpn.com.*.ovpn" | wc -l) -eq 0 ];
+declare -r -i files_present=$(find /etc/openvpn/client -type f -name "*.nordvpn.com.*.ovpn" | wc -l)
+declare -r -i up_to_date=$(find /etc/openvpn/client/nordvpn -type f -name etag -mmin -$((2 * 24 * 60)) | wc -l)
+if [ $files_present -eq 0 ] || ( [ $command != 'status' ] && [ $up_to_date -eq 0 ] )
 then
-    echo "No configuration files found. Updating now..."
+    echo "No configuration files found or files too old. Updating now..."
     update_files -f
 fi
 
