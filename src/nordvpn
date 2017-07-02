@@ -241,7 +241,12 @@ case $command in
         ;;
     stop|restart)
         service=$(get_service)
-        test -z "$service" || systemctl $command $service
+        if [ -z "$service" ]
+        then
+            echo "No openvpn connection exist."
+            exit 1
+        fi
+        systemctl $command $service
         ;;
     update)
         update_files "$@"

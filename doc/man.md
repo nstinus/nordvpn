@@ -35,7 +35,7 @@ COMMANDS
 
 **stop**
 
-: Stop any open connection, if any.
+: Stop the open connection.
 
 **restart**
 
