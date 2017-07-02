@@ -1,12 +1,20 @@
 #!/bin/sh
 
+exit_msg() {
+    (>&2 echo "$2")
+    exit $1
+}
+
 get_service() {
     systemctl --type=service | grep openvpn-client@nordvpn | awk '{print $1}'
 }
 
 run_ping() {
     remote=$(grep -E '^remote [0-9.]+ [0-9]+$' $1 | cut -d ' ' -f 2)
-    test ! -z "$remote" || exit 1
+    if [ -z "$remote" ]
+    then
+        exit_msg 1 "No ip address in config file $1"
+    fi
     bin=$(which ping)
     test $? -eq 0 || echo "ping not found, please install iputils"
     $bin -c 4 -A $remote | tail -n 1 | cut -d / -f 5
@@ -63,11 +71,13 @@ update_files() {
     echo "Downloading nordvpn config files..."
     curl -sS -o nordvpn.zip  $remote_url || exit 1
     if [ "$(md5sum nordvpn.zip | awk '{print $1}')" != "$etag" ]; then
-        echo "md5sum(nordvpn.zip) != $etag"
-        exit 1
+        exit_msg 1 "md5sum(nordvpn.zip) != $etag"
     fi
     mkdir conf
-    unzip -q nordvpn.zip -d conf || exit 2
+    if ! unzip -q nordvpn.zip -d conf
+    then
+        msg_exit 2 "unzip failed"
+    fi
 
     echo "Patching and installing files..."
     test -f $targetdir/credentials.conf && cp $targetdir/credentials.conf .
@@ -156,8 +166,7 @@ done
 
 if [ $(id -u) -ne 0 ] && [ $command != "status" ]
 then
-    echo "'nordvpn $command' requires super-user privileges."
-    exit 1
+    exit_msg 1 "'nordvpn $command' requires super-user privileges."
 fi
 
 declare -r -i files_present=$(find /etc/openvpn/client -type f -name "*.nordvpn.com.*.ovpn" | wc -l)
@@ -179,8 +188,7 @@ case $command in
     infos)
         if ! which python 1>/dev/null 2>&1;
         then
-            echo "'nordvpn infos' requires python and pandas."
-            exit 1
+            exit_msg 1 "'nordvpn infos' requires python and pandas."
         fi
         declare -i force_update=0
         case "$1" in
@@ -201,7 +209,10 @@ case $command in
         ;;
     ping)
         file="/etc/openvpn/client/nordvpn_${1}_udp.conf"
-        test -f "$file" || exit 1
+        if [ ! -f "$file" ]
+        then
+            exit_msg 1 "Can't find $file"
+        fi
         run_ping $file
         ;;
     rank)
@@ -234,8 +245,7 @@ case $command in
             ln -fs /etc/openvpn/update-resolv-conf $updown
         fi
         if [ ! -f /etc/openvpn/client/nordvpn_${1}_${conn_type}.conf ]; then
-            echo "${1} is not a valid nordvpn server. Exiting."
-            exit 1
+            exit_msg 1 "${1} is not a valid nordvpn server. Exiting."
         fi
         systemctl $command openvpn-client@nordvpn_${1}_${conn_type}
         ;;
@@ -243,8 +253,7 @@ case $command in
         service=$(get_service)
         if [ -z "$service" ]
         then
-            echo "No openvpn connection exist."
-            exit 1
+            exit_msg 1 "No openvpn connection exist."
         fi
         systemctl $command $service
         ;;
