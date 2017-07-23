@@ -10,14 +10,23 @@ get_service() {
 }
 
 run_ping() {
-    remote=$(grep -E '^remote [0-9.]+ [0-9]+$' $1 | cut -d ' ' -f 2)
+    local -r remote=$(grep -E '^remote [0-9.]+ [0-9]+$' $1 | cut -d ' ' -f 2)
     if [ -z "$remote" ]
     then
         exit_msg 1 "No ip address in config file $1"
     fi
-    bin=$(which ping)
+    local -r bin=$(which ping)
     test $? -eq 0 || echo "ping not found, please install iputils"
-    $bin -c 4 -A $remote | tail -n 1 | cut -d / -f 5
+    local -r tmp_stdout=$(mktemp)
+    if $bin -c 4 -A $remote > $tmp_stdout
+    then
+        tail -n 1 $tmp_stdout | cut -d / -f 5
+        rm $tmp_stdout
+        return
+    else
+        rm $tmp_stdout
+        exit_msg 2 "Can't run ping. Check internet connection."
+    fi
 }
 
 patch_config_file() {
