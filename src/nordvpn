@@ -265,6 +265,15 @@ case $command in
             exit_msg 1 "No openvpn connection exist."
         fi
         systemctl $command $service
+        if [[ $command = "stop" \
+                 && $(readlink -f /etc/openvpn/client/nordvpn/updown) = "/etc/openvpn/vpnfailsafe.sh" ]]
+        then
+            case "$1" in
+                -r|--reset)
+                    source /usr/share/doc/vpnfailsafe/vpnfailsafe_reset.sh
+                    break
+            esac
+        fi
         ;;
     update)
         update_files "$@"
