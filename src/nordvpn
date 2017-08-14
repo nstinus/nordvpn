@@ -161,7 +161,7 @@ do
             set -x
             shift
             ;;
-        list|infos|ping|rank|status|start|stop|restart|update)
+        list|infos|ping|rank|status|start|stop|restart|update|best)
             command="$1"
             shift
             break
@@ -236,13 +236,13 @@ case $command in
         run_ping $file
         ;;
     rank)
-        tmp=$(mktemp)
-        for f in $(find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*_udp.conf")
-        do
-            echo $(basename $f .conf | cut -d _ -f 2) $(run_ping $f) >> $tmp
-        done
-        sort -k 2 -n $tmp
-        rm -f $tmp
+        files=$(find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*_udp.conf" | cut -d _ -f 2)
+        bin=$(which fping)
+        test $? -eq 0 || echo "fping not found, please install"
+        tmp_stdout=$(mktemp)
+        $bin -c 4 -e -q $(echo $files | sed 's/$/.nordvpn.com/' | sed 's/ /.nordvpn.com /g') 2>$tmp_stdout > /dev/null
+        awk '{split($0,names,"."); split($0,res,"/"); print names[1],"\t",res[8]}' $tmp_stdout | sort -n -k 2
+        rm -f $tmp_stdout
         ;;
     status)
         service=$(get_service)
