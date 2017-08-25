@@ -59,6 +59,21 @@ Note that except for *status*, all the commands require super-user privileges.
 
 *rank* [_server_pattern_]:: ping and sort all servers matching _server_pattern_. See _ping_ above.
 
+*best* [_options_]:: filter best servers based on load and ping.
+    *--region `str`*::: filter the servers. The string can be:
+        * regex
+        * `eu`, `europe`
+        * `na`, `northamerica`
+        * `sa`, `southamerica`
+        * `am`, `americas`
+        * `ne`, `neareast`
+        * `as`, `asia`
+        * `oc`, `oceania`
+        * `all` (default)
+    *--maxload `int`*::: Max considered server load in percent.
+    *--num `int`*::: Number of best servers to return, sorted by ping
+    *--pingcount `int`*::: Number of times to ping each server for increased precision
+
 == OPTIONS
 
 -h, --help:: Print usage and exit.
@@ -69,7 +84,7 @@ Note that except for *status*, all the commands require super-user privileges.
 
 _/etc/openvpn/client/nordvpn/credentials.conf_:: Credentials of nordvpn.com subscription. Login on the first line and password on the second.
 
-_/tmp/nordvpn_servers.json_:: Servers list downloaded from https://api.nordvpn.com/server and used by **nordvpn infos**.
+_/tmp/nordvpn_servers.json_:: Servers list downloaded from https://api.nordvpn.com/server and used by **nordvpn infos** and **nordvpn best**.
 
 == BUGS
 
