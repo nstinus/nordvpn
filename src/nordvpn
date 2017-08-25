@@ -154,6 +154,24 @@ Available commands:
         load and features.
         -f, --force
             Force download.
+    best [options]
+        Filter best servers based on current ping and load
+        --region [str]
+            regex or one of:
+                all [default],
+                eu, europe,
+                na, northamerica,
+                sa, southamerica,
+                am, americas,
+                ne, neareast,
+                as, asia,
+                oc, oceania,
+        --maxload [int]
+            Max considered load
+        --num [int]
+            Number of best servers to return, sorted by ping
+        --pingcount [int]
+            Number of times to ping each server for increased precision
     ping server_name
         Show round trip latency.
     rank [server_name_pattern]
@@ -237,6 +255,14 @@ case $command in
             exit 1
         fi
         python /etc/openvpn/client/nordvpn/servers.py $servers_filename
+        ;;
+    best)
+        servers_filename=$(ensure_infos "$1")
+        if [ $? -ne 0 ]
+        then
+            exit 1
+        fi
+        python /etc/openvpn/client/nordvpn/servers.py $servers_filename --ranking "$@"
         ;;
     ping)
         file="/etc/openvpn/client/nordvpn_${1}_udp.conf"
