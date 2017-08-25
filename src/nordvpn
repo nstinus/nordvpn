@@ -154,6 +154,32 @@ Available commands:
         load and features.
         -f, --force
             Force download.
+    best [options]
+        Filter best servers based on current ping and load
+        -r, --region [str]
+            Can be passed multiple times to combine. [str] can be a regex or one of:
+                all [default],
+                eu, europe,
+                na, northamerica,
+                sa, southamerica,
+                am, americas,
+                ne, neareast,
+                as, asia,
+                oc, oceania,
+        -R, --not-region, --notregion [str]
+            NOT region with identical options to "region". Can be passed multiple times
+        -l, --max-load, --maxload [int]
+            Filter out servers with load above the threshold
+        -p, --max-ping, --maxping [int]
+            Filter out servers with ping above the threshold
+        -n, --num [int]
+            Number of best servers to return.
+        -c, --ping-count, --pingcount [int]
+            Number of times to ping each server for increased precision
+        -k, --keyword [str]
+            Keywords to filter by, such as "Skype", "Netflix". Can be passed multiple times
+        -s, --sort [str]
+            Sort returned servers by "ping" or "load". Defaults to "ping".
     ping server_name
         Show round trip latency.
     rank [server_name_pattern]
@@ -186,7 +212,7 @@ do
             set -x
             shift
             ;;
-        list|infos|ping|rank|status|start|stop|restart|update)
+        list|infos|ping|rank|status|start|stop|restart|update|best)
             command="$1"
             shift
             break
@@ -237,6 +263,21 @@ case $command in
             exit 1
         fi
         python3 /etc/openvpn/client/nordvpn/servers.py $servers_filename
+        ;;
+    best)
+        case "$1" in
+            -h|--help)
+            python /etc/openvpn/client/nordvpn/servers.py --help
+            ;;
+        *)
+            servers_filename=$(ensure_infos "$1")
+            if [ $? -ne 0 ]
+            then
+                exit 1
+            fi
+            python /etc/openvpn/client/nordvpn/servers.py $servers_filename --ranking "$@"
+            ;;
+        esac
         ;;
     ping)
         file="/etc/openvpn/client/nordvpn_${1}_udp.conf"
