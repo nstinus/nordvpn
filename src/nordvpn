@@ -114,16 +114,19 @@ update_files() {
 print_usage() {
     cat <<EOF
 usage: $(basename $0) [options] command [args]
+
 Available options:
     -v, --verbose
         Be verbose, show commands and variables.
     -h, --help
         Print this help and exit.
+
 Available commands:
     list [server_name_pattern]
         List available servers.
     infos [options]
-        List available servers with additional information such as current load and features.
+        List available servers with additional information such as current
+        load and features.
         -f, --force
             Force download.
     ping server_name
@@ -142,9 +145,10 @@ Available commands:
         Download and install nordvpn config files.
         -f, --force
             Force download even if the configuration files have not changed.
+
+For more details see nordvpn(8).
 EOF
 }
-
 
 while [ $# -ne 0 ]
 do
@@ -173,6 +177,12 @@ do
     esac
 done
 
+if [ -z $command ]
+then
+    print_usage
+    exit 1
+fi
+
 if [ $(id -u) -ne 0 ] && [ $command != "status" ]
 then
     exit_msg 1 "'nordvpn $command' requires super-user privileges."
@@ -180,6 +190,7 @@ fi
 
 declare -r -i files_present=$(find /etc/openvpn/client -type f -name "*.nordvpn.com.*.ovpn" | wc -l)
 declare -r -i up_to_date=$(find /etc/openvpn/client/nordvpn -type f -name etag -mmin -$((2 * 24 * 60)) | wc -l)
+
 if [ $files_present -eq 0 ] || ( [ $command != 'status' ] && [ $up_to_date -eq 0 ] )
 then
     echo "No configuration files found or files too old. Updating now..."
