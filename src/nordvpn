@@ -29,6 +29,31 @@ run_ping() {
     fi
 }
 
+ensure_infos() {
+    if ! which python 1>/dev/null 2>&1;
+    then
+        exit_msg 1 "python and pandas are required."
+    fi
+    declare -i force_update=0
+    case "$1" in
+        -f|--force)
+            force_update=1
+            shift
+            ;;
+    esac
+    declare -r servers_filename=/tmp/nordvpn_servers.json
+    if [ $force_update -eq 1 ] \
+           || [ ! -f $servers_filename ] \
+           || [ ! -z "$(find $servers_filename -mmin +15)" ]
+    then
+        >&2 echo "Updating servers list..."
+        curl --silent -o $servers_filename https://api.nordvpn.com/server
+    fi
+    echo $servers_filename
+    return
+}
+
+
 patch_config_file() {
     local -r f=$1
     local -r targetdir=$2
@@ -129,6 +154,26 @@ Available commands:
         load and features.
         -f, --force
             Force download.
+    best [options]
+        Filter best servers based on current ping and load
+        --region [str]
+            regex or one of:
+                all [default],
+                eu, europe,
+                na, northamerica,
+                sa, southamerica,
+                am, americas,
+                ne, neareast,
+                as, asia,
+                oc, oceania,
+        --maxload [int]
+            Max considered load
+        --num [int]
+            Number of best servers to return, sorted by ping
+        --pingcount [int]
+            Number of times to ping each server for increased precision
+        --keyword [str]
+            Keywords to filter by, such as "Skype", "Netflix". Can be passed multiple times
     ping server_name
         Show round trip latency.
     rank [server_name_pattern]
@@ -161,7 +206,7 @@ do
             set -x
             shift
             ;;
-        list|infos|ping|rank|status|start|stop|restart|update)
+        list|infos|ping|rank|status|start|stop|restart|update|best)
             command="$1"
             shift
             break
@@ -206,26 +251,20 @@ case $command in
             | sort -g
         ;;
     infos)
-        if ! which python 1>/dev/null 2>&1;
+        servers_filename=$(ensure_infos "$@")
+        if [ $? -ne 0 ]
         then
-            exit_msg 1 "'nordvpn infos' requires python and pandas."
-        fi
-        declare -i force_update=0
-        case "$1" in
-            -f|--force)
-                force_update=1
-                shift
-                ;;
-        esac
-        declare -r servers_filename=/tmp/nordvpn_servers.json
-        if [ $force_update -eq 1 ] \
-               || [ ! -f $servers_filename ] \
-               || [ ! -z "$(find $servers_filename -mmin +15)" ]
-        then
-            echo "Updating servers list..."
-            curl --silent -o $servers_filename https://api.nordvpn.com/server
+            exit 1
         fi
         python /etc/openvpn/client/nordvpn/servers.py $servers_filename
+        ;;
+    best)
+        servers_filename=$(ensure_infos "$1")
+        if [ $? -ne 0 ]
+        then
+            exit 1
+        fi
+        python /etc/openvpn/client/nordvpn/servers.py $servers_filename --ranking "$@"
         ;;
     ping)
         file="/etc/openvpn/client/nordvpn_${1}_udp.conf"
@@ -236,13 +275,22 @@ case $command in
         run_ping $file
         ;;
     rank)
-        tmp=$(mktemp)
-        for f in $(find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*_udp.conf")
-        do
-            echo $(basename $f .conf | cut -d _ -f 2) $(run_ping $f) >> $tmp
-        done
-        sort -k 2 -n $tmp
-        rm -f $tmp
+        # tmp=$(mktemp)
+        # for f in $(find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*_udp.conf")
+        # do
+            # echo $(basename $f .conf | cut -d _ -f 2) $(run_ping $f) >> $tmp
+        # done
+        # sort -k 2 -n $tmp
+        # rm -f $tmp
+        # ;;
+    # ranknew)
+        files=$(find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*_udp.conf" | cut -d _ -f 2)
+        bin=$(which fping)
+        test $? -eq 0 || echo "fping not found, please install"
+        tmp_stdout=$(mktemp)
+        $bin -c 4 -e -q $(echo $files | sed 's/$/.nordvpn.com/' | sed 's/ /.nordvpn.com /g') 2>$tmp_stdout > /dev/null
+        awk '{split($0,names,"."); split($0,res,"/"); print names[1],"\t",res[8]}' $tmp_stdout | sort -n -k 2
+        rm -f $tmp_stdout
         ;;
     status)
         service=$(get_service)
