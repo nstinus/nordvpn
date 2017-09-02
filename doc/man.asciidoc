@@ -10,28 +10,17 @@ nordvpn - utility to use nordvpn.com with openvpn and systemd.
 
 == SYNOPSIS
 
-// FIXME: since all lines below are different paragraphs it will add empty lines.
-// We just want line breaks but I couldn't make it work.
-
-*nordvpn* [-v, --verbose] [-h, --help]
-
-*nordvpn* [-v, --verbose] *start* [-t, --tcp] _server_name_
-
-*nordvpn* [-v, --verbose] *stop* [-r, --reset]
-
-*nordvpn* [-v, --verbose] *restart*
-
-*nordvpn* [-v, --verbose] *status*
-
-*nordvpn* [-v, --verbose] *update* [-f, --force]
-
-*nordvpn* [-v, --verbose] *ping* _server_name_
-
-*nordvpn* [-v, --verbose] *list* [_server_pattern_]
-
-*nordvpn* [-v, --verbose] *infos* [-f, --force]
-
-*nordvpn* [-v, --verbose] *rank* [_server_pattern_]
+*nordvpn* [-v, --verbose] [-h, --help] +
+*nordvpn* [-v, --verbose] *start* [-t, --tcp] _server_name_ +
+*nordvpn* [-v, --verbose] *stop* [-r, --reset] +
+*nordvpn* [-v, --verbose] *restart* +
+*nordvpn* [-v, --verbose] *status* +
+*nordvpn* [-v, --verbose] *update* [-f, --force] +
+*nordvpn* [-v, --verbose] *ping* _server_name_ +
+*nordvpn* [-v, --verbose] *list* [_server_pattern_] +
+*nordvpn* [-v, --verbose] *infos* [-f, --force] +
+*nordvpn* [-v, --verbose] *rank* [_server_pattern_] +
+*nordvpn* [-v, --verbose] *best* [_options_]
 
 == DESCRIPTION
 
@@ -59,6 +48,22 @@ Note that except for *status*, all the commands require super-user privileges.
 
 *rank* [_server_pattern_]:: ping and sort all servers matching _server_pattern_. See _ping_ above.
 
+*best* [_options_]:: filter best servers based on load and ping.
+    *--region `str`*::: filter the servers. The string can be:
+        * regex
+        * `eu`, `europe`
+        * `na`, `northamerica`
+        * `sa`, `southamerica`
+        * `am`, `americas`
+        * `ne`, `neareast`
+        * `as`, `asia`
+        * `oc`, `oceania`
+        * `all` (default)
+    *--maxload `int`*::: Max considered server load in percent.
+    *--num `int`*::: Number of best servers to return, sorted by ping
+    *--pingcount `int`*::: Number of times to ping each server for increased precission
+    *--keyword `str`*::: Keywords to filter the server list by, such as `Skype` or `Netflix`. Can be passed multilpe times
+
 == OPTIONS
 
 -h, --help:: Print usage and exit.
@@ -69,7 +74,7 @@ Note that except for *status*, all the commands require super-user privileges.
 
 _/etc/openvpn/client/nordvpn/credentials.conf_:: Credentials of nordvpn.com subscription. Login on the first line and password on the second.
 
-_/tmp/nordvpn_servers.json_:: Servers list downloaded from https://api.nordvpn.com/server and used by **nordvpn infos**.
+_/tmp/nordvpn_servers.json_:: Servers list downloaded from https://api.nordvpn.com/server and used by **nordvpn infos** and **nordvpn best**.
 
 == BUGS
 
@@ -77,7 +82,8 @@ Please report any bug or feature request to GitHub Issues: <https://github.com/n
 
 == AUTHOR
 
-Nicolas Stinus <nicolas.stinus@gmail.com>
+Nicolas Stinus <nicolas.stinus@gmail.com>,
+Tomas Ostasevicius <t.ostasevicius@gmail.com>
 
 == SEE ALSO
 
