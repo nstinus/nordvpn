@@ -168,7 +168,7 @@ Available commands:
         --num [int]
             Number of best servers to return, sorted by ping
         --pingcount [int]
-            Number of times to ping each server for increased precission
+            Number of times to ping each server for increased precision
         --keyword [str]
             Keywords to filter by, such as "Skype", "Netflix". Can be passed multiple times
     ping server_name
