@@ -105,6 +105,7 @@ if __name__ == "__main__":
     parser.add_argument("--num", default=20, type=int)
     parser.add_argument("--region", type=str, default='all')
     parser.add_argument("--pingcount", type=int, default=1)
+    parser.add_argument("--keyword", type=str, action='append')
     args = parser.parse_args()
     if not os.access(args.servers_filename, os.R_OK):
         print >>sys.stderr, "Can't read {}".format(args.servers_filename)
@@ -130,18 +131,27 @@ if __name__ == "__main__":
 
     region = get_region(available, args.region)
     if args.ranking:
-        notloaded = region[region.load <= args.maxload]
-        if len(notloaded) > 0:
-            pings = pingservers(notloaded.name.tolist(), count=args.pingcount)
-            # effectively distance without unnecessary permissions
-            pinged = notloaded.join(
-                pandas.Series(pings, name='ping'), how='right',
-                on='name').sort_values("ping")
-            print(pinged[:args.num].to_string(
-                index=False, columns=['name', 'country', 'load', 'ping']))
-        else:
+        if args.keyword is not None:
+            region = region[[set(args.keyword).issubset(record) for record in
+                             region.search_keywords]]
+        if len(region) < 1:
             print(
-                f"All filtered servers loaded more than {args.maxload}%. Min load {region.load.min()}%"
+                "No servers left after filtering according to keywords:"
+                f"\n{args.keyword}"
             )
+        else:
+            notloaded = region[region.load <= args.maxload]
+            if len(notloaded) > 0:
+                pings = pingservers(notloaded.name.tolist(), count=args.pingcount)
+                # effectively distance without unnecessary permissions
+                pinged = notloaded.join(
+                    pandas.Series(pings, name='ping'), how='right',
+                    on='name').sort_values("ping")
+                print(pinged[:args.num].to_string(
+                    index=False, columns=['name', 'country', 'load', 'ping', 'search_keywords']))
+            else:
+                print(
+                    f"All filtered servers loaded more than {args.maxload}%. Min load {region.load.min()}%"
+                )
     else:
         print(region.to_string(index=False))
