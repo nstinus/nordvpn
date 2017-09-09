@@ -55,7 +55,7 @@ Note that except for *status*, all the commands require super-user privileges.
 
 *list* [_server_pattern_]:: Show all available servers matching _server_pattern_.
 
-*infos* [*-f*, *--force*]:: Show all available servers currently configured with additional information like current load, location and features. It will store data in /tmp/nordvpn_servers.json. The file is automatically updated after 15 minutes; option [*-f*, *--force*] forces the download. Requires *python* and the *pandas* package.
+*infos* [*-f*, *--force*]:: Show all available servers currently configured with additional information like current load, location and features. It will store data in /tmp/nordvpn_servers.json. The file is automatically updated after 15 minutes; option [*-f*, *--force*] forces the download. Requires *python3* and the *pandas* package.
 
 *rank* [_server_pattern_]:: ping and sort all servers matching _server_pattern_. See _ping_ above.
 

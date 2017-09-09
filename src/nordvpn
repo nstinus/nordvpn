@@ -206,9 +206,9 @@ case $command in
             | sort -g
         ;;
     infos)
-        if ! which python 1>/dev/null 2>&1;
+        if ! which python3 1>/dev/null 2>&1;
         then
-            exit_msg 1 "'nordvpn infos' requires python and pandas."
+            exit_msg 1 "'nordvpn infos' requires python3 and pandas."
         fi
         declare -i force_update=0
         case "$1" in
@@ -225,7 +225,7 @@ case $command in
             echo "Updating servers list..."
             curl --silent -o $servers_filename https://api.nordvpn.com/server
         fi
-        python /etc/openvpn/client/nordvpn/servers.py $servers_filename
+        python3 /etc/openvpn/client/nordvpn/servers.py $servers_filename
         ;;
     ping)
         file="/etc/openvpn/client/nordvpn_${1}_udp.conf"
