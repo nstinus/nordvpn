@@ -96,9 +96,11 @@ _/tmp/nordvpn_servers.json_:: Servers list downloaded from https://api.nordvpn.c
 
 Please report any bug or feature request to GitHub Issues: <https://github.com/nstinus/nordvpn/issues>.
 
-== AUTHOR
+== AUTHORS
 
-Nicolas Stinus <nicolas.stinus@gmail.com>
+Nicolas Stinus <nicolas.stinus@gmail.com>,
+Davide Galassi <davyjunz@ghesthouse.net>,
+Tomas Ostasevicius <t.ostasevicius@gmail.com>
 
 == SEE ALSO
 
