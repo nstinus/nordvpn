@@ -271,19 +271,18 @@ case $command in
         ;;
     stop|restart)
         service=$(get_service)
-        if [ -z "$service" ]
-        then
-            exit_msg 1 "No openvpn connection exist."
-        fi
-        systemctl $command $service
         if [[ $command = "stop" \
                  && $(readlink -f /etc/openvpn/client/nordvpn/updown) = "/etc/openvpn/vpnfailsafe.sh" ]]
         then
+            test -z "$service" || systemctl $command $service
             case "$1" in
                 -r|--reset)
                     source /usr/share/doc/vpnfailsafe/vpnfailsafe_reset.sh
                     break
             esac
+        else
+            test -z "$service" && exit_msg 1 "No openvpn connection exist."
+            systemctl $command $service
         fi
         ;;
     update)
