@@ -107,7 +107,10 @@ def best_function(servers, args):
         pinged = pinged[pinged.ping <= args.maxping]
     if len(pinged) < 1:
         return f"All servers pinged more than {args.maxping}"
-    pinged = pinged.sort_values("ping")
+    if args.sortload:
+        pinged = pinged.sort_values("load")
+    else:
+        pinged = pinged.sort_values("ping")
     return pinged[:args.num].to_string(index=False, columns=['name', 'country', 'load', 'ping', 'search_keywords'])
 
 if __name__ == "__main__":
@@ -126,6 +129,7 @@ if __name__ == "__main__":
     parser.add_argument("--ranking", action='store_true', default=False)
     parser.add_argument("--maxload", default=99, type=int)
     parser.add_argument("--maxping", type=int)
+    parser.add_argument("--sortload", action='store_true', default=False)
     parser.add_argument("--num", default=20, type=int)
     parser.add_argument("--region", type=str, default='all')
     parser.add_argument("--pingcount", type=int, default=1)
