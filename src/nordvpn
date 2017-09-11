@@ -156,7 +156,7 @@ Available commands:
             Force download.
     best [options]
         Filter best servers based on current ping and load
-        --region [str]
+        -r, --region [str]
             regex or one of:
                 all [default],
                 eu, europe,
@@ -166,17 +166,17 @@ Available commands:
                 ne, neareast,
                 as, asia,
                 oc, oceania,
-        --maxload [int]
+        -l, --maxload [int]
             Max considered load
-        --maxping [int]
+        -p, --maxping [int]
             Max considered ping
-        --num [int]
+        -n, --num [int]
             Number of best servers to return.
-        --pingcount [int]
+        -c, --pingcount [int]
             Number of times to ping each server for increased precision
-        --keyword [str]
+        -k, --keyword [str]
             Keywords to filter by, such as "Skype", "Netflix". Can be passed multiple times
-        --sortload
+        -s, --sortload
             Sort returned servers by load instead of ping
     ping server_name
         Show round trip latency.

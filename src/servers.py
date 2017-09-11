@@ -127,13 +127,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f", "--force", action='store_true', default=False)  # just capture
     parser.add_argument("--ranking", action='store_true', default=False)
-    parser.add_argument("--maxload", default=99, type=int)
-    parser.add_argument("--maxping", type=int)
-    parser.add_argument("--sortload", action='store_true', default=False)
-    parser.add_argument("--num", default=20, type=int)
-    parser.add_argument("--region", type=str, default='all')
-    parser.add_argument("--pingcount", type=int, default=1)
-    parser.add_argument("--keyword", type=str, action='append')
+    parser.add_argument("-l", "--maxload", default=99, type=int)
+    parser.add_argument("-p", "--maxping", type=int)
+    parser.add_argument("-s", "--sortload", action='store_true', default=False)
+    parser.add_argument("-n", "--num", default=20, type=int)
+    parser.add_argument("-r", "--region", type=str, default='all')
+    parser.add_argument("-c", "--pingcount", type=int, default=1)
+    parser.add_argument("-k", "--keyword", type=str, action='append')
     args = parser.parse_args()
     if not os.access(args.servers_filename, os.R_OK):
         print >>sys.stderr, "Can't read {}".format(args.servers_filename)
