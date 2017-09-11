@@ -60,7 +60,7 @@ Note that except for *status*, all the commands require super-user privileges.
 *rank* [_server_pattern_]:: ping and sort all servers matching _server_pattern_. See _ping_ above.
 
 *best* [_options_]:: filter best servers based on load and ping.
-    *--region `str`*::: filter the servers. The string can be:
+    [*-r*, *--region*] *`str`*::: filter the servers. The string can be:
         * regex
         * `eu`, `europe`
         * `na`, `northamerica`
@@ -70,12 +70,12 @@ Note that except for *status*, all the commands require super-user privileges.
         * `as`, `asia`
         * `oc`, `oceania`
         * `all` (default)
-    *--maxload `int`*::: Max considered server load in percent.
-    *--maxping `int`*::: Max considered server ping.
-    *--num `int`*::: Number of best servers to return.
-    *--pingcount `int`*::: Number of times to ping each server for increased precision
-    *--keyword `str`*::: Keywords to filter the server list by, such as `Skype` or `Netflix`. Can be passed multiple times
-    *--sortload*::: Sort returned servers by load instead of ping.
+    [*-l*, *--maxload*] *`int`*::: Max considered server load in percent.
+    [*-p*, *--maxping*] *`int`*::: Max considered server ping.
+    [*-n*, *--num*] *`int`*::: Number of best servers to return.
+    [*-c*, *--pingcount*] *`int`*::: Number of times to ping each server for increased precision
+    [*-k*, *--keyword*] *`str`*::: Keywords to filter the server list by, such as `Skype` or `Netflix`. Can be passed multiple times
+    [*-s*, *--sortload*]::: Sort returned servers by load instead of ping.
 
 == OPTIONS
 
