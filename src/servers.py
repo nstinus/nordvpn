@@ -9,9 +9,11 @@ import re
 from subprocess import Popen, PIPE, run
 
 
-def get_region(available, argument):
+def get_region(available, argument, reverse=False):
     argument = argument.strip().lower()
-    if argument in ['eu', 'europe']:
+    if argument in ['all']:
+        region = available
+    elif argument in ['eu', 'europe']:
         region = available[available.latitude > 35]
         region = region[region.latitude < 70]
         region = region[region.longitude < 60]
@@ -31,10 +33,8 @@ def get_region(available, argument):
             flag not in ['US', 'CA', 'MX'] for flag in region.flag
         ]]
     elif argument in ['am', 'americas']:
-        region = region[region.longitude < -30]
+        region = available[available.longitude < -30]
         region = region[region.longitude > -165]
-    elif argument in ['all']:
-        region = available
     elif argument in ['ne', 'neareast']:
         region = available[available.latitude > 10]
         region = region[region.latitude < 45]
@@ -54,6 +54,8 @@ def get_region(available, argument):
         region = available[[
             bool(regex.search(name)) for name in available.name
         ]]
+    if reverse:
+        region = available[~available.isin(region).name]
     return region
 
 
@@ -132,6 +134,7 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--sortload", action='store_true', default=False)
     parser.add_argument("-n", "--num", default=20, type=int)
     parser.add_argument("-r", "--region", type=str, default='all')
+    parser.add_argument("-R", "--notregion", type=str)
     parser.add_argument("-c", "--pingcount", type=int, default=1)
     parser.add_argument("-k", "--keyword", type=str, action='append')
     args = parser.parse_args()
@@ -158,7 +161,12 @@ if __name__ == "__main__":
     available = df[df.name.apply(lambda x: x in installed)]
 
     servers = get_region(available, args.region)
-    if args.ranking:
-        print(best_function(servers, args))
+    if args.notregion is not None:
+        servers = get_region(servers, args.notregion, reverse=True)
+    if not len(servers):
+        print(f"All servers were filtered out with the following options:\nregion: {args.region}, notregion: {args.notregion}")
     else:
-        print(servers.to_string(index=False))
+        if args.ranking:
+            print(best_function(servers, args))
+        else:
+            print(servers.to_string(index=False))
