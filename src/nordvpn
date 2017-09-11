@@ -168,6 +168,8 @@ Available commands:
                 oc, oceania,
         --maxload [int]
             Max considered load
+        --maxping [int]
+            Max considered ping
         --num [int]
             Number of best servers to return, sorted by ping
         --pingcount [int]

@@ -71,6 +71,7 @@ Note that except for *status*, all the commands require super-user privileges.
         * `oc`, `oceania`
         * `all` (default)
     *--maxload `int`*::: Max considered server load in percent.
+    *--maxping `int`*::: Max considered server ping.
     *--num `int`*::: Number of best servers to return, sorted by ping
     *--pingcount `int`*::: Number of times to ping each server for increased precision
     *--keyword `str`*::: Keywords to filter the server list by, such as `Skype` or `Netflix`. Can be passed multiple times
