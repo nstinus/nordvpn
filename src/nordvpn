@@ -171,11 +171,13 @@ Available commands:
         --maxping [int]
             Max considered ping
         --num [int]
-            Number of best servers to return, sorted by ping
+            Number of best servers to return.
         --pingcount [int]
             Number of times to ping each server for increased precision
         --keyword [str]
             Keywords to filter by, such as "Skype", "Netflix". Can be passed multiple times
+        --sortload
+            Sort returned servers by load instead of ping
     ping server_name
         Show round trip latency.
     rank [server_name_pattern]
