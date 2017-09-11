@@ -166,6 +166,8 @@ Available commands:
                 ne, neareast,
                 as, asia,
                 oc, oceania,
+        -R, --notregion [str]
+            NOT region with identical options to "region"
         -l, --maxload [int]
             Max considered load
         -p, --maxping [int]

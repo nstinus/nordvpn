@@ -70,6 +70,7 @@ Note that except for *status*, all the commands require super-user privileges.
         * `as`, `asia`
         * `oc`, `oceania`
         * `all` (default)
+    [*-R*, *--notregion*] *`str`*::: NOT `region` filter, with identical string options
     [*-l*, *--maxload*] *`int`*::: Max considered server load in percent.
     [*-p*, *--maxping*] *`int`*::: Max considered server ping.
     [*-n*, *--num*] *`int`*::: Number of best servers to return.
