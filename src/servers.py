@@ -87,6 +87,24 @@ def pingservers(addresses, count=1, repeat=True):
         results.update(pingservers(repeats, count=count + 1, repeat=False))
     return results
 
+def best_function(servers, args):
+    # Filter by keywords
+    if args.keyword is not None:
+        servers = servers[[set(args.keyword).issubset(record) for record in
+                         servers.search_keywords]]
+    if len(servers) < 1:
+        return f"No servers left after filtering according to keywords:\n{args.keyword}" 
+    # Filter by load
+    servers = servers[servers.load <= args.maxload]
+    if len(servers) < 1:
+        return f"All filtered servers loaded more than {args.maxload}%. Min load {servers.load.min()}%"
+    # Ping (effectively distance without unnecessary permissions)
+    pings = pingservers(servers.name.tolist(), count=args.pingcount)
+    pinged = servers.join(
+        pandas.Series(pings, name='ping'), how='right',
+        on='name').sort_values("ping")
+    return pinged[:args.num].to_string(index=False, columns=['name', 'country', 'load', 'ping', 'search_keywords'])
+
 if __name__ == "__main__":
 
     try:
@@ -129,29 +147,8 @@ if __name__ == "__main__":
     installed = set([os.path.splitext(os.path.basename(i).strip())[0].decode().split("_")[1] for i in p1.stdout.readlines()])
     available = df[df.name.apply(lambda x: x in installed)]
 
-    region = get_region(available, args.region)
+    servers = get_region(available, args.region)
     if args.ranking:
-        if args.keyword is not None:
-            region = region[[set(args.keyword).issubset(record) for record in
-                             region.search_keywords]]
-        if len(region) < 1:
-            print(
-                "No servers left after filtering according to keywords:"
-                f"\n{args.keyword}"
-            )
-        else:
-            notloaded = region[region.load <= args.maxload]
-            if len(notloaded) > 0:
-                pings = pingservers(notloaded.name.tolist(), count=args.pingcount)
-                # effectively distance without unnecessary permissions
-                pinged = notloaded.join(
-                    pandas.Series(pings, name='ping'), how='right',
-                    on='name').sort_values("ping")
-                print(pinged[:args.num].to_string(
-                    index=False, columns=['name', 'country', 'load', 'ping', 'search_keywords']))
-            else:
-                print(
-                    f"All filtered servers loaded more than {args.maxload}%. Min load {region.load.min()}%"
-                )
+        print(best_function(servers, args))
     else:
-        print(region.to_string(index=False))
+        print(servers.to_string(index=False))
