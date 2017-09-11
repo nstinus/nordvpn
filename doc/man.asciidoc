@@ -33,6 +33,8 @@ nordvpn - utility to use nordvpn.com with openvpn and systemd.
 
 *nordvpn* [-v, --verbose] *rank* [_server_pattern_]
 
+*nordvpn* [-v, --verbose] *best* [_options_]
+
 == DESCRIPTION
 
 *nordvpn* is a helper script to manage _openvpn_ connections to the subscription-based VPN service <https://www.nordvpn.com> from which it downloads the configuration files.
