@@ -265,12 +265,19 @@ case $command in
         python3 /etc/openvpn/client/nordvpn/servers.py $servers_filename
         ;;
     best)
-        servers_filename=$(ensure_infos "$1")
-        if [ $? -ne 0 ]
-        then
-            exit 1
-        fi
-        python /etc/openvpn/client/nordvpn/servers.py $servers_filename --ranking "$@"
+        case "$1" in
+            -h|--help)
+            python /etc/openvpn/client/nordvpn/servers.py --help
+            ;;
+        *)
+            servers_filename=$(ensure_infos "$1")
+            if [ $? -ne 0 ]
+            then
+                exit 1
+            fi
+            python /etc/openvpn/client/nordvpn/servers.py $servers_filename --ranking "$@"
+            ;;
+        esac
         ;;
     ping)
         file="/etc/openvpn/client/nordvpn_${1}_udp.conf"
