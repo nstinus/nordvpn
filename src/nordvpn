@@ -157,7 +157,7 @@ Available commands:
     best [options]
         Filter best servers based on current ping and load
         -r, --region [str]
-            regex or one of:
+            Can be passed multiple times to combine. [str] can be a regex or one of:
                 all [default],
                 eu, europe,
                 na, northamerica,
@@ -167,7 +167,7 @@ Available commands:
                 as, asia,
                 oc, oceania,
         -R, --not-region, --notregion [str]
-            NOT region with identical options to "region"
+            NOT region with identical options to "region". Can be passed multiple times
         -l, --max-load, --maxload [int]
             Filter out servers with load above the threshold
         -p, --max-ping, --maxping [int]
