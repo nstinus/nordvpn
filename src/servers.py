@@ -66,7 +66,7 @@ def validate_addresses(addresses):
     ]
 
 
-def pingservers(addresses, count=1, repeat=True):
+def pingservers(addresses, count=1, repeat=3):
     if not isinstance(count, int):
         raise ValueError("Count can only be an integer")
     count = max(1, count)
@@ -82,11 +82,12 @@ def pingservers(addresses, count=1, repeat=True):
         server = line.split(":")[0].strip()
         loss = float(line.split("%")[1].split("/")[-1])
         roundtime = float(line.split("=")[-1].split("/")[1].strip())
-        results[server.split('.')[0]] = roundtime
         if loss == 100 or roundtime <= 1:
             repeats.append(server)
-    if repeat and repeats:
-        results.update(pingservers(repeats, count=count + 1, repeat=False))
+        else:
+            results[server.split('.')[0]] = roundtime
+    if repeat > 0 and repeats:
+        results.update(pingservers(repeats, count=count + 1, repeat=repeat-1))
     return results
 
 def get_best(servers, args):
