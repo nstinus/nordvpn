@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, SUPPRESS
 import os
 import json
 import sys
@@ -125,22 +125,34 @@ if __name__ == "__main__":
         print("Can't import pandas. Please see 'man nordvpn'.", file=sys.stderr, flush=True)
         sys.exit(1)
 
-    parser = ArgumentParser()
-    parser.add_argument("servers_filename")
+    parser = ArgumentParser(prog="nordvpn best")
+    parser.add_argument("servers_filename", help=SUPPRESS)
     parser.add_argument(
-        "-f", "--force", action='store_true', default=False)  # just capture
-    parser.add_argument("--ranking", action='store_true', default=False)
-    parser.add_argument("-l", "--maxload", "--max-load", default=99, type=int)
-    parser.add_argument("-p", "--maxping", "--max-ping", type=int)
-    parser.add_argument("-s", "--sort", choices=["load", "ping"], default="ping")
-    parser.add_argument("-n", "--num", default=20, type=int)
-    parser.add_argument("-r", "--region", type=str, action="append")
-    parser.add_argument("-R", "--notregion", type=str, action="append")
-    parser.add_argument("-c", "--pingcount", "--ping-count", type=int, default=1)
-    parser.add_argument("-k", "--keyword", type=str, action='append')
+        "-f", "--force", action='store_true', default=False, help="Force download")  # just capture
+    parser.add_argument("--ranking", action='store_true', default=False, help=SUPPRESS)
+    parser.add_argument("-l", "--maxload", "--max-load", default=99, type=int, metavar="INT",
+                        help="Filter out servers with load above the threshold %(metavar)s%% (default: %(default)s%%)")
+    parser.add_argument("-p", "--maxping", "--max-ping", type=int, metavar="INT",
+                        help="Filter out servers with ping above the threshold %(metavar)s")
+    parser.add_argument("-s", "--sort", choices=["load", "ping"], default="ping",
+                        help="Sort returned servers by ping or load, (default: %(default)s)")
+    parser.add_argument("-n", "--num", default=20, type=int, metavar='INT',
+                        help="Number of best servers to return, (default: %(default)s)")
+    parser.add_argument("-r", "--region", type=str, action="append", metavar='STR',
+                        help="""Server regions to consider. Can be passed
+                        multiple times to combine. [STR] can be a regex or one
+                        of: all, eu, europe, na, northamerica, sa,
+                        southamerica, am, americas, ne, neareast, as, asia, oc,
+                        oceania""")
+    parser.add_argument("-R", "--notregion", "--not-region", type=str, action="append", metavar='STR',
+                        help="Regions to exclude, with identical options as 'region'")
+    parser.add_argument("-c", "--pingcount", "--ping-count", type=int, default=1, metavar='INT', 
+                        help="Number of times to ping each server (default: %(default)s)")
+    parser.add_argument("-k", "--keyword", type=str, action='append', metavar='STR',
+                        help="Keywords to filter by, such as 'Netflix', 'P2P'. Can be passed multiple times")
     args = parser.parse_args()
     if not os.access(args.servers_filename, os.R_OK):
-        print >>sys.stderr, "Can't read {}".format(args.servers_filename)
+        print("Can't read {}".format(args.servers_filename), file=sys.stderr, flush=True)
         sys.exit(1)
 
     df = pandas.read_json(args.servers_filename)
