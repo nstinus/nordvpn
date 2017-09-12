@@ -166,20 +166,20 @@ Available commands:
                 ne, neareast,
                 as, asia,
                 oc, oceania,
-        -R, --notregion [str]
+        -R, --not-region, --notregion [str]
             NOT region with identical options to "region"
-        -l, --maxload [int]
-            Max considered load
-        -p, --maxping [int]
-            Max considered ping
+        -l, --max-load, --maxload [int]
+            Filter out servers with load above the threshold
+        -p, --max-ping, --maxping [int]
+            Filter out servers with ping above the threshold
         -n, --num [int]
             Number of best servers to return.
-        -c, --pingcount [int]
+        -c, --ping-count, --pingcount [int]
             Number of times to ping each server for increased precision
         -k, --keyword [str]
             Keywords to filter by, such as "Skype", "Netflix". Can be passed multiple times
-        -s, --sortload
-            Sort returned servers by load instead of ping
+        -s, --sort [str]
+            Sort returned servers by "ping" or "load". Defaults to "ping".
     ping server_name
         Show round trip latency.
     rank [server_name_pattern]
