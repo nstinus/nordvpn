@@ -133,8 +133,8 @@ if __name__ == "__main__":
     parser.add_argument("-p", "--maxping", "--max-ping", type=int)
     parser.add_argument("-s", "--sort", choices=["load", "ping"], default="ping")
     parser.add_argument("-n", "--num", default=20, type=int)
-    parser.add_argument("-r", "--region", type=str, default='all')
-    parser.add_argument("-R", "--notregion", type=str)
+    parser.add_argument("-r", "--region", type=str, action="append")
+    parser.add_argument("-R", "--notregion", type=str, action="append")
     parser.add_argument("-c", "--pingcount", "--ping-count", type=int, default=1)
     parser.add_argument("-k", "--keyword", type=str, action='append')
     args = parser.parse_args()
@@ -159,10 +159,13 @@ if __name__ == "__main__":
     p1 = Popen(shlex.split('find /etc/openvpn/client/ -type l -name "nordvpn_*.conf"'), stdout=PIPE)
     installed = set([os.path.splitext(os.path.basename(i).strip())[0].decode().split("_")[1] for i in p1.stdout.readlines()])
     available = df[df.name.apply(lambda x: x in installed)]
-
-    servers = get_region(available, args.region)
+    if args.region is None:
+        servers = available
+    else:
+        servers = pandas.concat([get_region(available, region) for region in args.region])
     if args.notregion is not None:
-        servers = get_region(servers, args.notregion, reverse=True)
+        for region in args.notregion:
+            servers = get_region(servers, region, reverse=True)
     if not len(servers):
         print(f"All servers were filtered out with the following options:\nregion: {args.region}, notregion: {args.notregion}")
     else:

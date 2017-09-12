@@ -62,7 +62,7 @@ Note that except for *status*, all the commands require super-user privileges.
 *rank* [_server_pattern_]:: ping and sort all servers matching _server_pattern_. See _ping_ above.
 
 *best* [_options_]:: filter best servers based on load and ping.
-    [*-r*, *--region*] *`str`*::: filter the servers. The string can be:
+    [*-r*, *--region*] *`str`*::: filter the servers. Can be passed multiple times to combine. The string can be:
         * regex
         * `eu`, `europe`
         * `na`, `northamerica`
@@ -72,7 +72,7 @@ Note that except for *status*, all the commands require super-user privileges.
         * `as`, `asia`
         * `oc`, `oceania`
         * `all` (default)
-    [*-R*, *--not-region*, *--notregion*] *`str`*::: NOT `region` filter, with identical string options
+    [*-R*, *--not-region*, *--notregion*] *`str`*::: NOT `region` filter, with identical string options. Can be passed multiple times.
     [*-l*, *--max-load*, *--maxload*] *`int`*::: Filter out servers with load above the threshold
     [*-p*, *--max-ping*, *--maxping*] *`int`*::: Filter out servers with ping above the threshold
     [*-n*, *--num*] *`int`*::: Number of best servers to return.
