@@ -33,6 +33,8 @@ nordvpn - utility to use nordvpn.com with openvpn and systemd.
 
 *nordvpn* [-v, --verbose] *rank* [_server_pattern_]
 
+*nordvpn* [-v, --verbose] *best* [_options_]
+
 == DESCRIPTION
 
 *nordvpn* is a helper script to manage _openvpn_ connections to the subscription-based VPN service <https://www.nordvpn.com> from which it downloads the configuration files.
@@ -60,7 +62,7 @@ Note that except for *status*, all the commands require super-user privileges.
 *rank* [_server_pattern_]:: ping and sort all servers matching _server_pattern_. See _ping_ above.
 
 *best* [_options_]:: filter best servers based on load and ping.
-    *--region `str`*::: filter the servers. The string can be:
+    [*-r*, *--region*] *`str`*::: filter the servers. Can be passed multiple times to combine. The string can be:
         * regex
         * `eu`, `europe`
         * `na`, `northamerica`
@@ -70,10 +72,13 @@ Note that except for *status*, all the commands require super-user privileges.
         * `as`, `asia`
         * `oc`, `oceania`
         * `all` (default)
-    *--maxload `int`*::: Max considered server load in percent.
-    *--num `int`*::: Number of best servers to return, sorted by ping
-    *--pingcount `int`*::: Number of times to ping each server for increased precision
-    *--keyword `str`*::: Keywords to filter the server list by, such as `Skype` or `Netflix`. Can be passed multiple times
+    [*-R*, *--not-region*, *--notregion*] *`str`*::: NOT `region` filter, with identical string options. Can be passed multiple times.
+    [*-l*, *--max-load*, *--maxload*] *`int`*::: Filter out servers with load above the threshold
+    [*-p*, *--max-ping*, *--maxping*] *`int`*::: Filter out servers with ping above the threshold
+    [*-n*, *--num*] *`int`*::: Number of best servers to return.
+    [*-c*, *--ping-count*, *--pingcount*] *`int`*::: Number of times to ping each server for increased precision
+    [*-k*, *--keyword*] *`str`*::: Keywords to filter the server list by, such as `Skype` or `Netflix`. Can be passed multiple times
+    [*-s*, *--sort*] *`str`*::: Sort returned servers by "ping" or "load". Defaults to "ping".
 
 == OPTIONS
 

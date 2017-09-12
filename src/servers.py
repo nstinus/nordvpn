@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, SUPPRESS
 import os
 import json
 import sys
@@ -9,9 +9,11 @@ import re
 from subprocess import Popen, PIPE, run
 
 
-def get_region(available, argument):
+def get_region(available, argument, reverse=False):
     argument = argument.strip().lower()
-    if argument in ['eu', 'europe']:
+    if argument in ['all']:
+        region = available
+    elif argument in ['eu', 'europe']:
         region = available[available.latitude > 35]
         region = region[region.latitude < 70]
         region = region[region.longitude < 60]
@@ -31,10 +33,8 @@ def get_region(available, argument):
             flag not in ['US', 'CA', 'MX'] for flag in region.flag
         ]]
     elif argument in ['am', 'americas']:
-        region = region[region.longitude < -30]
+        region = available[available.longitude < -30]
         region = region[region.longitude > -165]
-    elif argument in ['all']:
-        region = available
     elif argument in ['ne', 'neareast']:
         region = available[available.latitude > 10]
         region = region[region.latitude < 45]
@@ -54,6 +54,8 @@ def get_region(available, argument):
         region = available[[
             bool(regex.search(name)) for name in available.name
         ]]
+    if reverse:
+        region = available[~available.isin(region).name]
     return region
 
 
@@ -64,7 +66,7 @@ def validate_addresses(addresses):
     ]
 
 
-def pingservers(addresses, count=1, repeat=True):
+def pingservers(addresses, count=1, repeat=3):
     if not isinstance(count, int):
         raise ValueError("Count can only be an integer")
     count = max(1, count)
@@ -80,12 +82,39 @@ def pingservers(addresses, count=1, repeat=True):
         server = line.split(":")[0].strip()
         loss = float(line.split("%")[1].split("/")[-1])
         roundtime = float(line.split("=")[-1].split("/")[1].strip())
-        results[server.split('.')[0]] = roundtime
         if loss == 100 or roundtime <= 1:
             repeats.append(server)
-    if repeat and repeats:
-        results.update(pingservers(repeats, count=count + 1, repeat=False))
+        else:
+            results[server.split('.')[0]] = roundtime
+    if repeat > 0 and repeats:
+        results.update(pingservers(repeats, count=count + 1, repeat=repeat-1))
     return results
+
+def get_best(servers, args):
+    # Filter by keywords
+    if args.keyword is not None:
+        servers = servers[[set(args.keyword).issubset(record) for record in
+                         servers.search_keywords]]
+    if len(servers) < 1:
+        return f"No servers left after filtering according to keywords:\n{args.keyword}" 
+    # Filter by load
+    servers = servers[servers.load <= args.maxload]
+    if len(servers) < 1:
+        return f"All filtered servers loaded more than {args.maxload}%"
+    # Ping (effectively distance without unnecessary permissions)
+    pings = pingservers(servers.name.tolist(), count=args.pingcount)
+    pinged = servers.join(
+        pandas.Series(pings, name='ping'), how='right',
+        on='name')
+    if args.maxping is not None:
+        pinged = pinged[pinged.ping <= args.maxping]
+    if len(pinged) < 1:
+        return f"All servers pinged more than {args.maxping}"
+    if args.sort == "ping":
+        pinged = pinged.sort_values("ping")
+    else:
+        pinged = pinged.sort_values("load")
+    return pinged[:args.num].to_string(index=False, columns=['name', 'country', 'load', 'ping', 'search_keywords'])
 
 if __name__ == "__main__":
 
@@ -96,19 +125,34 @@ if __name__ == "__main__":
         print("Can't import pandas. Please see 'man nordvpn'.", file=sys.stderr, flush=True)
         sys.exit(1)
 
-    parser = ArgumentParser()
-    parser.add_argument("servers_filename")
+    parser = ArgumentParser(prog="nordvpn best")
+    parser.add_argument("servers_filename", help=SUPPRESS)
     parser.add_argument(
-        "-f", "--force", action='store_true', default=False)  # just capture
-    parser.add_argument("--ranking", action='store_true', default=False)
-    parser.add_argument("--maxload", default=30, type=int)
-    parser.add_argument("--num", default=20, type=int)
-    parser.add_argument("--region", type=str, default='all')
-    parser.add_argument("--pingcount", type=int, default=1)
-    parser.add_argument("--keyword", type=str, action='append')
+        "-f", "--force", action='store_true', default=False, help="Force download")  # just capture
+    parser.add_argument("--ranking", action='store_true', default=False, help=SUPPRESS)
+    parser.add_argument("-l", "--maxload", "--max-load", default=99, type=int, metavar="INT",
+                        help="Filter out servers with load above the threshold %(metavar)s%% (default: %(default)s%%)")
+    parser.add_argument("-p", "--maxping", "--max-ping", type=int, metavar="INT",
+                        help="Filter out servers with ping above the threshold %(metavar)s")
+    parser.add_argument("-s", "--sort", choices=["load", "ping"], default="ping",
+                        help="Sort returned servers by ping or load, (default: %(default)s)")
+    parser.add_argument("-n", "--num", default=20, type=int, metavar='INT',
+                        help="Number of best servers to return, (default: %(default)s)")
+    parser.add_argument("-r", "--region", type=str, action="append", metavar='STR',
+                        help="""Server regions to consider. Can be passed
+                        multiple times to combine. [STR] can be a regex or one
+                        of: all, eu, europe, na, northamerica, sa,
+                        southamerica, am, americas, ne, neareast, as, asia, oc,
+                        oceania""")
+    parser.add_argument("-R", "--notregion", "--not-region", type=str, action="append", metavar='STR',
+                        help="Regions to exclude, with identical options as 'region'")
+    parser.add_argument("-c", "--pingcount", "--ping-count", type=int, default=1, metavar='INT', 
+                        help="Number of times to ping each server (default: %(default)s)")
+    parser.add_argument("-k", "--keyword", type=str, action='append', metavar='STR',
+                        help="Keywords to filter by, such as 'Netflix', 'P2P'. Can be passed multiple times")
     args = parser.parse_args()
     if not os.access(args.servers_filename, os.R_OK):
-        print >>sys.stderr, "Can't read {}".format(args.servers_filename)
+        print("Can't read {}".format(args.servers_filename), file=sys.stderr, flush=True)
         sys.exit(1)
 
     df = pandas.read_json(args.servers_filename)
@@ -128,30 +172,17 @@ if __name__ == "__main__":
     p1 = Popen(shlex.split('find /etc/openvpn/client/ -type l -name "nordvpn_*.conf"'), stdout=PIPE)
     installed = set([os.path.splitext(os.path.basename(i).strip())[0].decode().split("_")[1] for i in p1.stdout.readlines()])
     available = df[df.name.apply(lambda x: x in installed)]
-
-    region = get_region(available, args.region)
-    if args.ranking:
-        if args.keyword is not None:
-            region = region[[set(args.keyword).issubset(record) for record in
-                             region.search_keywords]]
-        if len(region) < 1:
-            print(
-                "No servers left after filtering according to keywords:"
-                f"\n{args.keyword}"
-            )
-        else:
-            notloaded = region[region.load <= args.maxload]
-            if len(notloaded) > 0:
-                pings = pingservers(notloaded.name.tolist(), count=args.pingcount)
-                # effectively distance without unnecessary permissions
-                pinged = notloaded.join(
-                    pandas.Series(pings, name='ping'), how='right',
-                    on='name').sort_values("ping")
-                print(pinged[:args.num].to_string(
-                    index=False, columns=['name', 'country', 'load', 'ping', 'search_keywords']))
-            else:
-                print(
-                    f"All filtered servers loaded more than {args.maxload}%. Min load {region.load.min()}%"
-                )
+    if args.region is None:
+        servers = available
     else:
-        print(region.to_string(index=False))
+        servers = pandas.concat([get_region(available, region) for region in args.region])
+    if args.notregion is not None:
+        for region in args.notregion:
+            servers = get_region(servers, region, reverse=True)
+    if not len(servers):
+        print(f"All servers were filtered out with the following options:\nregion: {args.region}, notregion: {args.notregion}")
+    else:
+        if args.ranking:
+            print(get_best(servers, args))
+        else:
+            print(servers.to_string(index=False))
