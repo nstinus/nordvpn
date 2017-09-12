@@ -72,13 +72,13 @@ Note that except for *status*, all the commands require super-user privileges.
         * `as`, `asia`
         * `oc`, `oceania`
         * `all` (default)
-    [*-R*, *--notregion*] *`str`*::: NOT `region` filter, with identical string options
-    [*-l*, *--maxload*] *`int`*::: Max considered server load in percent.
-    [*-p*, *--maxping*] *`int`*::: Max considered server ping.
+    [*-R*, *--not-region*, *--notregion*] *`str`*::: NOT `region` filter, with identical string options
+    [*-l*, *--max-load*, *--maxload*] *`int`*::: Filter out servers with load above the threshold
+    [*-p*, *--max-ping*, *--maxping*] *`int`*::: Filter out servers with ping above the threshold
     [*-n*, *--num*] *`int`*::: Number of best servers to return.
-    [*-c*, *--pingcount*] *`int`*::: Number of times to ping each server for increased precision
+    [*-c*, *--ping-count*, *--pingcount*] *`int`*::: Number of times to ping each server for increased precision
     [*-k*, *--keyword*] *`str`*::: Keywords to filter the server list by, such as `Skype` or `Netflix`. Can be passed multiple times
-    [*-s*, *--sortload*]::: Sort returned servers by load instead of ping.
+    [*-s*, *--sort*] *`str`*::: Sort returned servers by "ping" or "load". Defaults to "ping".
 
 == OPTIONS
 

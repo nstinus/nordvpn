@@ -109,10 +109,10 @@ def get_best(servers, args):
         pinged = pinged[pinged.ping <= args.maxping]
     if len(pinged) < 1:
         return f"All servers pinged more than {args.maxping}"
-    if args.sortload:
-        pinged = pinged.sort_values("load")
-    else:
+    if args.sort == "ping":
         pinged = pinged.sort_values("ping")
+    else:
+        pinged = pinged.sort_values("load")
     return pinged[:args.num].to_string(index=False, columns=['name', 'country', 'load', 'ping', 'search_keywords'])
 
 if __name__ == "__main__":
@@ -129,13 +129,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "-f", "--force", action='store_true', default=False)  # just capture
     parser.add_argument("--ranking", action='store_true', default=False)
-    parser.add_argument("-l", "--maxload", default=99, type=int)
-    parser.add_argument("-p", "--maxping", type=int)
-    parser.add_argument("-s", "--sortload", action='store_true', default=False)
+    parser.add_argument("-l", "--maxload", "--max-load", default=99, type=int)
+    parser.add_argument("-p", "--maxping", "--max-ping", type=int)
+    parser.add_argument("-s", "--sort", choices=["load", "ping"], default="ping")
     parser.add_argument("-n", "--num", default=20, type=int)
     parser.add_argument("-r", "--region", type=str, default='all')
     parser.add_argument("-R", "--notregion", type=str)
-    parser.add_argument("-c", "--pingcount", type=int, default=1)
+    parser.add_argument("-c", "--pingcount", "--ping-count", type=int, default=1)
     parser.add_argument("-k", "--keyword", type=str, action='append')
     args = parser.parse_args()
     if not os.access(args.servers_filename, os.R_OK):
