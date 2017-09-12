@@ -89,7 +89,7 @@ def pingservers(addresses, count=1, repeat=True):
         results.update(pingservers(repeats, count=count + 1, repeat=False))
     return results
 
-def best_function(servers, args):
+def get_best(servers, args):
     # Filter by keywords
     if args.keyword is not None:
         servers = servers[[set(args.keyword).issubset(record) for record in
@@ -167,6 +167,6 @@ if __name__ == "__main__":
         print(f"All servers were filtered out with the following options:\nregion: {args.region}, notregion: {args.notregion}")
     else:
         if args.ranking:
-            print(best_function(servers, args))
+            print(get_best(servers, args))
         else:
             print(servers.to_string(index=False))
