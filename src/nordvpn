@@ -223,7 +223,8 @@ case $command in
                || [ ! -z "$(find $servers_filename -mmin +15)" ]
         then
             echo "Updating servers list..."
-            curl --silent -o $servers_filename https://api.nordvpn.com/server
+            curl -sL -o $servers_filename https://api.nordvpn.com/server
+            chmod a+rw $servers_filename
         fi
         python3 /etc/openvpn/client/nordvpn/servers.py $servers_filename
         ;;
