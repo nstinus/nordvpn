@@ -30,10 +30,6 @@ run_ping() {
 }
 
 ensure_infos() {
-    if ! which python 1>/dev/null 2>&1;
-    then
-        exit_msg 1 "python and pandas are required."
-    fi
     declare -i force_update=0
     case "$1" in
         -f|--force)
@@ -53,6 +49,10 @@ ensure_infos() {
     return
 }
 
+run_servers() {
+    which python3 1>/dev/null 2>&1 || exit_msg 1 "python3 and pandas are required."
+    timeout -v --signal=SIGINT 1m python3 /etc/openvpn/client/nordvpn/servers.py $@
+}
 
 patch_config_file() {
     local -r f=$1
@@ -262,20 +262,17 @@ case $command in
         then
             exit 1
         fi
-        python3 /etc/openvpn/client/nordvpn/servers.py $servers_filename
+        run_servers $servers_filename
         ;;
     best)
         case "$1" in
             -h|--help)
-            python /etc/openvpn/client/nordvpn/servers.py --help
+            run_servers --help
             ;;
         *)
             servers_filename=$(ensure_infos "$1")
-            if [ $? -ne 0 ]
-            then
-                exit 1
-            fi
-            python /etc/openvpn/client/nordvpn/servers.py $servers_filename --ranking "$@"
+            test $? -eq 0 || exit_msg 1 "ensure_infos failed"
+            run_servers $servers_filename --ranking "$@"
             ;;
         esac
         ;;
