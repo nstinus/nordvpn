@@ -308,6 +308,7 @@ case $command in
                 shift
                 ;;
         esac
+
         service=$(get_service)
         updown=/etc/openvpn/client/nordvpn/updown
         test -z "$service" || $0 stop
@@ -316,10 +317,20 @@ case $command in
         else
             ln -fs /etc/openvpn/update-resolv-conf $updown
         fi
-        if [ ! -f /etc/openvpn/client/nordvpn_${1}_${conn_type}.conf ]; then
-            exit_msg 1 "${1} is not a valid nordvpn server. Exiting."
+
+        server=$1
+        if [ -z "$server" ]; then
+            which jq 1>/dev/null \
+                || exit_msg 1 "'jq' executable not found. Please install it or specify a server explicitly."
+            url='https://nordvpn.com/wp-admin/admin-ajax.php?action=servers_recommendations'
+            server=$(curl --silent $url | jq -Mr '.[].subdomain' | sort -R | head -n 1)
+            test -z "$server" && exit_msg 1 "Can't find recommended server."
         fi
-        systemctl $command openvpn-client@nordvpn_${1}_${conn_type}
+
+        test -f /etc/openvpn/client/nordvpn_${server}_${conn_type}.conf \
+             || exit_msg 1 "'${1}' is not a valid nordvpn server. Exiting."
+
+        systemctl $command openvpn-client@nordvpn_${server}_${conn_type}
         ;;
     stop|restart)
         service=$(get_service)
