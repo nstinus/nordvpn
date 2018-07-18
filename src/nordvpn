@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 exit_msg() {
     (>&2 echo "$2")
