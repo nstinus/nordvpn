@@ -119,7 +119,7 @@ update_files() {
     rm -rf $targetdir/conf && mkdir -p $targetdir/conf
 
     export -f patch_config_file
-    find conf -name '*.ovpn' | xargs -P $(($(nproc --all)-1)) -n1 -I{} sh -c "patch_config_file {} $targetdir"
+    find conf -name '*.ovpn' | xargs -P $(($(nproc --all)-1)) -n1 -I{} bash -c "patch_config_file {} $targetdir"
 
     local cred_file=$targetdir/credentials.conf
     if [ -f credentials.conf ]; then
