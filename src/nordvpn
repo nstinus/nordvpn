@@ -6,7 +6,7 @@ exit_msg() {
 }
 
 get_service() {
-    systemctl --type=service | grep openvpn-client@nordvpn | awk '{print $1}'
+    systemctl --type=service --plain | grep openvpn-client@nordvpn | awk '{print $1}'
 }
 
 run_ping() {
