@@ -338,7 +338,7 @@ case $command in
             case "$1" in
                 -r|--reset)
                     source /usr/share/doc/vpnfailsafe/vpnfailsafe_reset.sh
-                    break
+                    ;;
             esac
         else
             test -z "$service" && exit_msg 1 "No openvpn connection exist."
