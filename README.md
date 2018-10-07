@@ -13,7 +13,7 @@ difficulty on systems that satisfy the following dependency list:
 - curl,
 - unzip,
 - ping,
-- openvpn-update-resolv-conf or vpnfailsafe.
+- openvpn-update-resolv-conf, openvpn-update-systemd-resolved or vpnfailsafe.
 
 Quickstart
 ----------

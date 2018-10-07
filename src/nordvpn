@@ -311,8 +311,12 @@ case $command in
         test -z "$service" || $0 stop
         if [ -x /etc/openvpn/vpnfailsafe.sh ]; then
             ln -fs /etc/openvpn/vpnfailsafe.sh $updown
-        else
+        elif [ -x /etc/openvpn/update-resolv-conf ]; then
             ln -fs /etc/openvpn/update-resolv-conf $updown
+        elif [ -x /etc/openvpn/scripts/update-systemd-resolved ]; then
+            ln -fs /etc/openvpn/scripts/update-systemd-resolved $updown
+        else
+            exit_msg 1 "did not find a valid updown command."
         fi
 
         server=$1
