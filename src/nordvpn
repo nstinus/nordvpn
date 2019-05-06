@@ -320,7 +320,7 @@ case $command in
             which jq 1>/dev/null \
                 || exit_msg 1 "'jq' executable not found. Please install it or specify a server explicitly."
             url='https://nordvpn.com/wp-admin/admin-ajax.php?action=servers_recommendations'
-            server=$(curl --silent $url | jq -Mr '.[].subdomain' | sort -R | head -n 1)
+            server=$(curl --silent $url | jq -Mr '.[].hostname' | awk -F. '{print $1}' | sort -R | head -n 1)
             test -z "$server" && exit_msg 1 "Can't find recommended server."
         fi
 
