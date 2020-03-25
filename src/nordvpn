@@ -251,7 +251,6 @@ fi
 case $command in
     list)
         find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*.conf" \
-            | xargs -L1 basename \
             | cut -d _ -f 2 \
             | cut -d . -f 1 \
             | sort -g
