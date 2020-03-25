@@ -212,7 +212,12 @@ do
             set -x
             shift
             ;;
-        list|infos|ping|rank|status|start|stop|restart|update|best)
+        status)
+            service=$(get_service)
+            test -z "$service" || systemctl status $service
+            exit 0
+            ;;
+        list|infos|ping|rank|start|stop|restart|update|best)
             command="$1"
             shift
             break
@@ -234,7 +239,7 @@ then
     exit 1
 fi
 
-if [ $(id -u) -ne 0 ] && [ $command != "status" ]
+if [ $(id -u) -ne 0 ]
 then
     exit_msg 1 "'nordvpn $command' requires super-user privileges."
 fi
@@ -291,10 +296,6 @@ case $command in
         $bin -c 4 -e -q $(echo $files | sed 's/$/.nordvpn.com/' | sed 's/ /.nordvpn.com /g') 2>$tmp_stdout > /dev/null
         awk '{split($0,names,"."); split($0,res,"/"); print names[1],"\t",res[8]}' $tmp_stdout | sort -n -k 2
         rm -f $tmp_stdout
-        ;;
-    status)
-        service=$(get_service)
-        test -z "$service" || systemctl status $service
         ;;
     start)
         conn_type='udp'
