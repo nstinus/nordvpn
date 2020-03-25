@@ -285,13 +285,19 @@ case $command in
         run_ping $file
         ;;
     rank)
-        files=$(find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*_udp.conf" | cut -d _ -f 2)
+        files=$(find /etc/openvpn/client/ -type l -name "nordvpn_*${1}*_udp.conf")
+	server_addrs=$(echo "$files" | cut -d _ -f 2 | sed 's/$/.nordvpn.com/' | sed 's/ /.nordvpn.com /g')
+	server_ips=$(cat $files | grep -oE '((1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])\.){3}(1?[0-9][0-9]?|2[0-4][0-9]|25[0-5])')
         bin=$(which fping)
         test $? -eq 0 || echo "fping not found, please install"
-        tmp_stdout=$(mktemp)
-        $bin -c 4 -e -q $(echo $files | sed 's/$/.nordvpn.com/' | sed 's/ /.nordvpn.com /g') 2>$tmp_stdout > /dev/null
-        awk '{split($0,names,"."); split($0,res,"/"); print names[1],"\t",res[8]}' $tmp_stdout | sort -n -k 2
-        rm -f $tmp_stdout
+	tmp_stdout1=$(mktemp)
+	echo "$server_addrs" > $tmp_stdout1
+	tmp_stdout2=$(mktemp)
+	$bin -c 4 -i 1 -q $server_ips 2> $tmp_stdout2 > /dev/null
+	tmp_stdout3=$(mktemp)
+	paste $tmp_stdout1 $tmp_stdout2 > $tmp_stdout3
+	awk '{split($0,names,"."); split($0,res,"/"); if(res[8]!="") print names[1],"\t",res[8]}' $tmp_stdout3 | sort -n -k 2
+        rm -f $tmp_stdout $tmp_stdout2 $tmp_stdout3
         ;;
     status)
         service=$(get_service)
