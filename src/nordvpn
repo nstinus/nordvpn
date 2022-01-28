@@ -84,7 +84,7 @@ update_files() {
         esac
     done
 
-    local remote_url=https://nordvpn.com/api/files/zipv2
+    local remote_url=https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip
 
     local targetdir=/etc/openvpn/client/nordvpn
     mkdir -p $targetdir
