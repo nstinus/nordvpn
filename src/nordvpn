@@ -84,29 +84,29 @@ update_files() {
         esac
     done
 
-    local remote_url=https://nordvpn.com/api/files/zipv2
+    local remote_url=https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip
 
     local targetdir=/etc/openvpn/client/nordvpn
     mkdir -p $targetdir
 
-    # local etag_file=$targetdir/etag
-    # local etag="$(curl -sIL $remote_url \
-    #                  | grep etag \
-    #                  | awk '{print $2}' \
-    #                  | tr -d '[:space:]')"
-    # if [ $force_update -eq 0 ] && [ -r $etag_file ] && [ "$etag" = "$(cat $etag_file)" ]; then
-    #     echo "Current config is up to date."
-    #     exit 0
-    # fi
+    local checksum_file=$targetdir/checksum
+    local checksum="$(curl -sIL $remote_url \
+                     | grep x-digest \
+                     | awk '{print $2}' \
+                     | tr -d '[:space:]')"
+    if [ $force_update -eq 0 ] && [ -r $checksum_file ] && [ "$checksum" = "$(cat $checksum_file)" ]; then
+        echo "Current config is up to date."
+        exit 0
+    fi
 
     local tmpdir=$(mktemp -d)
     cd $tmpdir
 
     echo "Downloading nordvpn config files..."
     curl -sSL -o nordvpn.zip  $remote_url || exit 1
-    # if [ "$(md5sum nordvpn.zip | awk '{print $1}')" != "$etag" ]; then
-    #     exit_msg 1 "md5sum(nordvpn.zip) != $etag"
-    # fi
+    if [ "$(sha256sum nordvpn.zip | awk '{print $1}')" != "$checksum" ]; then
+        exit_msg 1 "sha256sum(nordvpn.zip) != $checksum"
+    fi
     mkdir conf
     if ! unzip -q nordvpn.zip -d conf
     then
@@ -131,7 +131,7 @@ update_files() {
         echo "Please update $cred_file"
     fi
 
-    # echo "$etag" > $etag_file
+    echo "$checksum" > $checksum_file
 
     rm -rf $tmpdir
 }
@@ -245,7 +245,7 @@ then
 fi
 
 declare -r -i files_present=$(find /etc/openvpn/client -type f -name "*.nordvpn.com.*.ovpn" | wc -l)
-declare -r -i up_to_date=1 #$(find /etc/openvpn/client/nordvpn -type f -name etag -mmin -$((2 * 24 * 60)) | wc -l)
+declare -r -i up_to_date=$(find /etc/openvpn/client/nordvpn -type f -name checksum -mmin -$((2 * 24 * 60)) | wc -l)
 
 if [ $files_present -eq 0 ] || ( [ $command != 'status' ] && [ $up_to_date -eq 0 ] )
 then
